@@ -1,0 +1,14 @@
+/.metadata/*
+/.recommenders/*
+*.class
+/Servers/*
+/FlexWorkspace/*
+/.hg
+*.orig
+/RemoteSystemsTempFiles/*
+/ConceptoComercialJ/build/*
+/JavaWorkspace/*
+/JasperReportWorkspace/*
+/workspace/*
+/PrinterManagerJ/build/*
+/.metadata/

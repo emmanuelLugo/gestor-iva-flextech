@@ -1,0 +1,368 @@
+package py.com.concepto.simulador;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.io.FileWriter;
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Locale;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.DatePickerSettings;
+
+import py.com.concepto.simulador.model.SimulationResult;
+import py.com.concepto.simulador.model.Venda;
+
+public class App extends JFrame {
+    private DatabaseService dbService = new DatabaseService();
+    private SimulationService simService = new SimulationService();
+    private SimulationResult lastResult;
+    private List<Venda> lastVendas;
+
+    // GUI Components
+    private JTextField txtHost = new JTextField("localhost", 15);
+    private JTextField txtUser = new JTextField("root", 15);
+    private JPasswordField txtPass = new JPasswordField("84125497", 15);
+    private JComboBox<String> cbDatabase = new JComboBox<>();
+    private JComboBox<String> cbBoca = new JComboBox<>();
+    
+    private DatePicker datePickerInicio;
+    private DatePicker datePickerFin;
+    private JTextField txtMontoMax = new JTextField("0", 10);
+
+    private JLabel lblStatus = new JLabel("Status: Desconectado");
+    private JProgressBar progressBar = new JProgressBar();
+    private JLabel lblResVentas = new JLabel("Ventas: -");
+    private JLabel lblResOriginal = new JLabel("Total Original: -");
+    private JLabel lblResSimulado = new JLabel("Total Simulado: -");
+    private JLabel lblResDiferencia = new JLabel("Diferencia: -");
+
+    private JTextArea txtLog = new JTextArea();
+    private JScrollPane scrollLog = new JScrollPane(txtLog);
+
+    private JButton btnSimular = new JButton("Correr Simulación");
+    private JButton btnFacturar = new JButton("PROCESAR Y FACTURAR (REAL)");
+    private JButton btnConnect = new JButton("Conectar y Listar BD");
+    private JButton btnExport = new JButton("Exportar CSV");
+    private JButton btnCancelar = new JButton("DETENER PROCESO");
+
+    private volatile boolean cancelled = false;
+
+    public App() {
+        setTitle("Flextech - Simulador Auto Impressor");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(700, 900);
+        setLayout(new BorderLayout());
+
+        btnCancelar.setBackground(Color.DARK_GRAY);
+        btnCancelar.setForeground(Color.WHITE);
+        btnCancelar.setEnabled(false);
+
+        txtLog.setEditable(false);
+        txtLog.setBackground(new Color(245, 245, 245));
+        txtLog.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        scrollLog.setBorder(BorderFactory.createTitledBorder("Registro de Actividad"));
+
+        DatePickerSettings settingsInicio = new DatePickerSettings(new Locale("es", "PY"));
+        settingsInicio.setFormatForDatesCommonEra("dd/MM/yyyy");
+        datePickerInicio = new DatePicker(settingsInicio);
+        datePickerInicio.setDate(LocalDate.now());
+
+        DatePickerSettings settingsFin = new DatePickerSettings(new Locale("es", "PY"));
+        settingsFin.setFormatForDatesCommonEra("dd/MM/yyyy");
+        datePickerFin = new DatePicker(settingsFin);
+        datePickerFin.setDate(LocalDate.now());
+
+        JPanel pnlConn = new JPanel(new GridLayout(0, 2, 5, 5));
+        pnlConn.setBorder(BorderFactory.createTitledBorder("Conexión"));
+        pnlConn.add(new JLabel("Host:")); pnlConn.add(txtHost);
+        pnlConn.add(new JLabel("Usuario:")); pnlConn.add(txtUser);
+        pnlConn.add(new JLabel("Contraseña:")); pnlConn.add(txtPass);
+        pnlConn.add(btnConnect);
+        pnlConn.add(cbDatabase);
+
+        JPanel pnlFiltros = new JPanel(new GridLayout(0, 2, 5, 5));
+        pnlFiltros.setBorder(BorderFactory.createTitledBorder("Filtros Simulación"));
+        pnlFiltros.add(new JLabel("Boca:")); pnlFiltros.add(cbBoca);
+        pnlFiltros.add(new JLabel("Fecha Inicio (DD/MM/AAAA):")); pnlFiltros.add(datePickerInicio);
+        pnlFiltros.add(new JLabel("Fecha Fin (DD/MM/AAAA):")); pnlFiltros.add(datePickerFin);
+        pnlFiltros.add(new JLabel("Monto Máx Item:")); pnlFiltros.add(txtMontoMax);
+        pnlFiltros.add(btnSimular);
+        pnlFiltros.add(btnExport);
+
+        btnFacturar.setBackground(new Color(255, 100, 100));
+        btnFacturar.setForeground(Color.WHITE);
+        pnlFiltros.add(btnFacturar);
+        pnlFiltros.add(btnCancelar);
+
+        JPanel pnlResult = new JPanel(new GridLayout(0, 1, 5, 5));
+        pnlResult.setBorder(BorderFactory.createTitledBorder("Resultados"));
+        pnlResult.add(lblResVentas);
+        pnlResult.add(lblResOriginal);
+        pnlResult.add(lblResSimulado);
+        pnlResult.add(lblResDiferencia);
+
+        JPanel pnlCenter = new JPanel(new BorderLayout());
+        pnlCenter.add(pnlResult, BorderLayout.NORTH);
+        pnlCenter.add(scrollLog, BorderLayout.CENTER);
+
+        JPanel pnlNorth = new JPanel(new BorderLayout());
+        pnlNorth.add(pnlConn, BorderLayout.NORTH);
+        pnlNorth.add(pnlFiltros, BorderLayout.CENTER);
+
+        JPanel pnlSouth = new JPanel(new BorderLayout());
+        progressBar.setVisible(false);
+        pnlSouth.add(progressBar, BorderLayout.NORTH);
+        pnlSouth.add(lblStatus, BorderLayout.SOUTH);
+
+        add(pnlNorth, BorderLayout.NORTH);
+        add(pnlCenter, BorderLayout.CENTER);
+        add(pnlSouth, BorderLayout.SOUTH);
+
+        setLocationRelativeTo(null);
+
+        btnConnect.addActionListener(e -> connect());
+        cbDatabase.addActionListener(e -> initDatabase());
+        btnSimular.addActionListener(e -> runSimulation(false, null));
+        btnExport.addActionListener(e -> exportCsv());
+        btnFacturar.addActionListener(e -> runRealExecution());
+        btnCancelar.addActionListener(e -> {
+            cancelled = true;
+            btnCancelar.setEnabled(false);
+            log("!!! Solicitando detención del proceso...");
+        });
+    }
+
+    private void log(String message) {
+        SwingUtilities.invokeLater(() -> {
+            txtLog.append(message + "\n");
+            txtLog.setCaretPosition(txtLog.getDocument().getLength());
+        });
+    }
+
+    private void setLoading(boolean loading, String statusText) {
+        SwingUtilities.invokeLater(() -> {
+            progressBar.setIndeterminate(loading);
+            progressBar.setVisible(loading);
+            lblStatus.setText(statusText);
+            btnSimular.setEnabled(!loading);
+            btnFacturar.setEnabled(!loading);
+            btnConnect.setEnabled(!loading);
+            btnExport.setEnabled(!loading);
+            btnCancelar.setEnabled(loading);
+            setCursor(loading ? Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR) : Cursor.getDefaultCursor());
+        });
+    }
+
+    private void connect() {
+        setLoading(true, "Status: Conectando...");
+        new Thread(() -> {
+            try {
+                dbService.connect(txtHost.getText(), txtUser.getText(), new String(txtPass.getPassword()), null);
+                List<String> dbs = dbService.listDatabases();
+                SwingUtilities.invokeLater(() -> {
+                    cbDatabase.removeAllItems();
+                    for (String db : dbs) cbDatabase.addItem(db);
+                });
+                setLoading(false, "Status: Conectado. Seleccione BD.");
+            } catch (Exception ex) {
+                setLoading(false, "Status: Error conexión.");
+                JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+            }
+        }).start();
+    }
+
+    private void initDatabase() {
+        String db = (String) cbDatabase.getSelectedItem();
+        if (db == null) return;
+        setLoading(true, "Status: Inicializando BD " + db + "...");
+        new Thread(() -> {
+            try {
+                dbService.connect(txtHost.getText(), txtUser.getText(), new String(txtPass.getPassword()), db);
+                List<String> bocas = dbService.listBocas();
+                SwingUtilities.invokeLater(() -> {
+                    cbBoca.removeAllItems();
+                    cbBoca.addItem("[TODAS]");
+                    for (String b : bocas) cbBoca.addItem(b);
+                });
+                setLoading(false, "Status: BD " + db + " lista.");
+            } catch (Exception ex) {
+                setLoading(false, "Error init DB: " + ex.getMessage());
+            }
+        }).start();
+    }
+
+    private void runSimulation(boolean silent, Runnable onDone) {
+        LocalDate inicio = datePickerInicio.getDate();
+        LocalDate fin = datePickerFin.getDate();
+        if (inicio == null || fin == null) {
+            if (!silent) JOptionPane.showMessageDialog(this, "Seleccione fechas válidas");
+            return;
+        }
+
+        if (!silent) {
+            txtLog.setText("");
+            log("--- Iniciando Simulación ---");
+            log("Periodo: " + inicio + " al " + fin);
+            log("Boca: " + cbBoca.getSelectedItem());
+        }
+
+        cancelled = false;
+        setLoading(true, "Status: Corriendo simulación...");
+        new Thread(() -> {
+            try {
+                String boca = (String) cbBoca.getSelectedItem();
+                BigDecimal montoMax = new BigDecimal(txtMontoMax.getText().replace(",", "."));
+                Long clientePadrao = dbService.getClientePadrao();
+                
+                java.util.function.Consumer<String> logger = (msg) -> log(msg);
+                java.util.function.BooleanSupplier checkCancelled = () -> cancelled;
+
+                lastVendas = dbService.getVendasForSimulation(inicio.toString(), fin.toString(), boca, checkCancelled);
+                
+                lastResult = simService.runSimulation(lastVendas, clientePadrao, montoMax, logger, checkCancelled);
+                
+                SwingUtilities.invokeLater(() -> {
+                    updateResultsUI();
+                    if (!silent) {
+                        lblStatus.setText("Status: Simulación completada.");
+                        log("--- Simulación Finalizada ---");
+                        log("Ventas procesadas: " + lastResult.getCountVendas());
+                    }
+                    if (onDone != null) onDone.run();
+                });
+            } catch (InterruptedException iex) {
+                log("!!! PROCESO CANCELADO POR EL USUARIO.");
+                setLoading(false, "Status: Cancelado.");
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> {
+                    if (!silent) {
+                        log("ERROR: " + ex.getMessage());
+                        JOptionPane.showMessageDialog(this, "Error simulación: " + ex.getMessage());
+                    }
+                });
+                ex.printStackTrace();
+            } finally {
+                if (onDone == null) setLoading(false, lblStatus.getText());
+            }
+        }).start();
+    }
+
+    private void runRealExecution() {
+        String boca = (String) cbBoca.getSelectedItem();
+        if (boca == null || boca.equals("[TODAS]")) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar una BOCA específica para facturar.");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, 
+            "¿ESTÁ SEGURO?\nEsta acción modificará los totales de las facturas en la base de datos legal.\nBoca: " + boca,
+            "Confirmación de Facturación Real", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        runSimulation(true, () -> {
+            log("\n--- INICIANDO EJECUCIÓN REAL ---");
+            cancelled = false;
+            setLoading(true, "Status: Ejecutando cambios reales en base de datos...");
+            new Thread(() -> {
+                try {
+                    dbService.setAutoCommit(false); // Iniciar Transacción
+                    log("Limpiando tablas temporales...");
+                    dbService.limpaTabelasAutoImpressao();
+                    
+                    int count = 0;
+                    for (Venda v : lastVendas) {
+                        if (cancelled) {
+                            log("!!! CANCELACIÓN DETECTADA. Realizando Rollback...");
+                            dbService.rollback();
+                            throw new InterruptedException("Proceso abortado por el usuario");
+                        }
+                        dbService.saveProcessamento(v, v.getItens(), v.getVlTotal());
+                        count++;
+                        if (count % 10 == 0) log("Guardando procesos... (" + count + "/" + lastVendas.size() + ")");
+                    }
+                    
+                    log("Finalizando facturación y recalculando IVAs...");
+                    dbService.finalizarFacturacion(boca);
+                    
+                    dbService.commit(); // Todo salió bien, confirmar cambios
+                    log("--- PROCESO COMPLETADO ---");
+                    setLoading(false, "Status: ¡FACTURACIÓN COMPLETADA CON ÉXITO!");
+                    JOptionPane.showMessageDialog(this, "Proceso finalizado correctamente.");
+                } catch (InterruptedException iex) {
+                    log("!!! PROCESO DETENIDO. No se aplicaron cambios a la base de datos.");
+                    setLoading(false, "Status: Detenido.");
+                } catch (Exception ex) {
+                    try { dbService.rollback(); } catch (Exception e) {}
+                    log("ERROR CRÍTICO: " + ex.getMessage());
+                    setLoading(false, "ERROR en ejecución real.");
+                    JOptionPane.showMessageDialog(this, "ERROR en ejecución real: " + ex.getMessage());
+                    ex.printStackTrace();
+                } finally {
+                    try { dbService.setAutoCommit(true); } catch (Exception e) {}
+                }
+            }).start();
+        });
+    }
+
+    private void updateResultsUI() {
+        DecimalFormat df = new DecimalFormat("#,##0");
+        lblResVentas.setText("Ventas: " + lastResult.getCountVendas());
+        lblResOriginal.setText("Total Original: " + df.format(lastResult.getTotalOriginal()));
+        lblResSimulado.setText("Total Simulado: " + df.format(lastResult.getTotalSimulado()));
+        lblResDiferencia.setText("Diferencia: " + df.format(lastResult.getDiferenca()));
+    }
+
+    private void exportCsv() {
+        if (lastResult == null) { JOptionPane.showMessageDialog(this, "Primero corra una simulación"); return; }
+        
+        // Formato para CSV: Sin decimales y sin separadores de miles para que Excel no se confunda
+        DecimalFormat dfCsv = new DecimalFormat("###0");
+        
+        try (FileWriter writer = new FileWriter("simulacion_resumen.csv")) {
+            writer.write("Concepto;Valor\n");
+            writer.write("Boca;" + cbBoca.getSelectedItem() + "\n");
+            writer.write("Periodo;" + datePickerInicio.getDateStringOrEmptyString() + " a " + datePickerFin.getDateStringOrEmptyString() + "\n");
+            writer.write("Monto Max Item;" + txtMontoMax.getText() + "\n");
+            writer.write("Ventas Analizadas;" + lastResult.getCountVendas() + "\n");
+            writer.write("Total Original;" + dfCsv.format(lastResult.getTotalOriginal()) + "\n");
+            writer.write("Total Simulado;" + dfCsv.format(lastResult.getTotalSimulado()) + "\n");
+            writer.write("Diferencia;" + dfCsv.format(lastResult.getDiferenca()) + "\n");
+            writer.write("IVA 5% Simulado;" + dfCsv.format(lastResult.getTotalIva5()) + "\n");
+            writer.write("IVA 10% Simulado;" + dfCsv.format(lastResult.getTotalIva10()) + "\n");
+            JOptionPane.showMessageDialog(this, "Exportado a simulacion_resumen.csv");
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error exportar: " + ex.getMessage());
+        }
+    }
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        SwingUtilities.invokeLater(() -> new App().setVisible(true));
+    }
+}

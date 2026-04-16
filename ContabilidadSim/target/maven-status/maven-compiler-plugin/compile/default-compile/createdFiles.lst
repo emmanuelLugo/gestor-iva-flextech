@@ -1,0 +1,6 @@
+py\com\concepto\simulador\model\ItemVenda.class
+py\com\concepto\simulador\App.class
+py\com\concepto\simulador\model\Venda.class
+py\com\concepto\simulador\DatabaseService.class
+py\com\concepto\simulador\model\SimulationResult.class
+py\com\concepto\simulador\SimulationService.class
