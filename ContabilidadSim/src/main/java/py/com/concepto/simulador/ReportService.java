@@ -25,15 +25,10 @@ import py.com.concepto.simulador.model.LivroVendaDto;
 public class ReportService {
 
     public void generarLibroVentaPdf(List<LivroVendaDto> datos, String rutaDestino, String filtros, String moneda, Filial filial) throws JRException {
-        // Cargar el diseño .jrxml desde el classpath (recursos)
-        String path = "/reports/LibroVenta.jrxml";
-        InputStream jrxmlStream = getClass().getResourceAsStream(path);
-        if (jrxmlStream == null) {
-            jrxmlStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("reports/LibroVenta.jrxml");
-        }
+        InputStream jrxmlStream = getClass().getResourceAsStream("/reports/LibroVenta.jrxml");
         
         if (jrxmlStream == null) {
-            throw new JRException("No se pudo encontrar el archivo " + path + " en los recursos. Context CL: " + Thread.currentThread().getContextClassLoader());
+            throw new JRException("No se pudo encontrar el archivo /reports/LibroVenta.jrxml en los recursos.");
         }
 
         // Compilar el reporte en tiempo de ejecución
@@ -77,15 +72,10 @@ public class ReportService {
     }
 
     private JasperPrint fillRG90(List<IntegracaoVendaHechaukaDto> datos, String moneda, String filialNombre, String usuario) throws JRException {
-        // Cargar el diseño .jrxml desde el classpath (recursos)
-        String path = "/reports/ExportacaoVendaRg90.jrxml";
-        InputStream jrxmlStream = getClass().getResourceAsStream(path);
-        if (jrxmlStream == null) {
-            jrxmlStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("reports/ExportacaoVendaRg90.jrxml");
-        }
+        InputStream jrxmlStream = getClass().getResourceAsStream("/reports/ExportacaoVendaRg90.jrxml");
         
         if (jrxmlStream == null) {
-            throw new JRException("No se pudo encontrar el archivo " + path + " en los recursos. Context CL: " + Thread.currentThread().getContextClassLoader());
+            throw new JRException("No se pudo encontrar el archivo /reports/ExportacaoVendaRg90.jrxml en los recursos.");
         }
 
         // Compilar el reporte en tiempo de ejecución
@@ -107,15 +97,10 @@ public class ReportService {
     }
 
     public void generarEdisysXls(List<?> datos, String rutaDestino, String moneda, String filialNombre, String usuario) throws JRException {
-        // Cargar el diseño .jrxml desde el classpath (recursos)
-        String path = "/reports/ExportacaoVendasEdisys.jrxml";
-        InputStream jrxmlStream = getClass().getResourceAsStream(path);
-        if (jrxmlStream == null) {
-            jrxmlStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("reports/ExportacaoVendasEdisys.jrxml");
-        }
+        InputStream jrxmlStream = getClass().getResourceAsStream("/reports/ExportacaoVendasEdisys.jrxml");
         
         if (jrxmlStream == null) {
-            throw new JRException("No se pudo encontrar el archivo " + path + " en los recursos. Context CL: " + Thread.currentThread().getContextClassLoader());
+            throw new JRException("No se pudo encontrar el archivo /reports/ExportacaoVendasEdisys.jrxml en los recursos.");
         }
 
         JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
