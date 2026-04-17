@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
-import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -63,7 +62,7 @@ public class App extends JFrame {
     private JButton btnSimular = new JButton("Correr Simulación");
     private JButton btnFacturar = new JButton("PROCESAR Y FACTURAR (REAL)");
     private JButton btnConnect = new JButton("Conectar y Listar BD");
-    private JButton btnExport = new JButton("Exportar CSV");
+    private JButton btnExport = new JButton("edisys (xls)");
     private JButton btnReportePdf = new JButton("Generar LIBRO VENTA (PDF)");
     private JButton btnRG90 = new JButton("Generar RG90 (PDF)");
     private JButton btnRG90Csv = new JButton("Generar RG90 (CSV)");
@@ -154,7 +153,7 @@ public class App extends JFrame {
         btnConnect.addActionListener(e -> connect());
         cbDatabase.addActionListener(e -> initDatabase());
         btnSimular.addActionListener(e -> runSimulation(false, null));
-        btnExport.addActionListener(e -> exportCsv());
+        btnExport.addActionListener(e -> exportarEdisysXls());
         btnReportePdf.addActionListener(e -> generarReportePdf());
         btnRG90.addActionListener(e -> generarReporteRG90(false));
         btnRG90Csv.addActionListener(e -> generarReporteRG90(true));
@@ -466,27 +465,52 @@ public class App extends JFrame {
         lblResDiferencia.setText("Diferencia: " + df.format(lastResult.getDiferenca()));
     }
 
-    private void exportCsv() {
-        if (lastResult == null) { JOptionPane.showMessageDialog(this, "Primero corra una simulación"); return; }
-        
-        // Formato para CSV: Sin decimales y sin separadores de miles para que Excel no se confunda
-        DecimalFormat dfCsv = new DecimalFormat("###0");
-        
-        try (FileWriter writer = new FileWriter("simulacion_resumen.csv")) {
-            writer.write("Concepto;Valor\n");
-            writer.write("Boca;" + cbBoca.getSelectedItem() + "\n");
-            writer.write("Periodo;" + datePickerInicio.getDateStringOrEmptyString() + " a " + datePickerFin.getDateStringOrEmptyString() + "\n");
-            writer.write("Monto Max Item;" + txtMontoMax.getText() + "\n");
-            writer.write("Ventas Analizadas;" + lastResult.getCountVendas() + "\n");
-            writer.write("Total Original;" + dfCsv.format(lastResult.getTotalOriginal()) + "\n");
-            writer.write("Total Simulado;" + dfCsv.format(lastResult.getTotalSimulado()) + "\n");
-            writer.write("Diferencia;" + dfCsv.format(lastResult.getDiferenca()) + "\n");
-            writer.write("IVA 5% Simulado;" + dfCsv.format(lastResult.getTotalIva5()) + "\n");
-            writer.write("IVA 10% Simulado;" + dfCsv.format(lastResult.getTotalIva10()) + "\n");
-            JOptionPane.showMessageDialog(this, "Exportado a simulacion_resumen.csv");
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Error exportar: " + ex.getMessage());
+    private void exportarEdisysXls() {
+        LocalDate inicio = datePickerInicio.getDate();
+        LocalDate fin = datePickerFin.getDate();
+        if (inicio == null || fin == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione fechas válidas");
+            return;
         }
+
+        setLoading(true, "Status: Generando Edisys XLS Detallado...");
+        new Thread(() -> {
+            try {
+                log("--- Generando Reporte Edisys XLS Detallado (Datos Legales) ---");
+                
+                String bocaStr = (String) cbBoca.getSelectedItem();
+                // Llamamos a la lógica real de Edisys (desglose por tasas de IVA)
+                List<py.com.concepto.simulador.model.IntegracaoVendaEdisysDto> datos = dbService.relatorioEdisys(inicio.toString(), fin.toString(), bocaStr);
+                
+                if (datos.isEmpty()) {
+                    log("!!! No se encontraron datos para exportar.");
+                    setLoading(false, "Status: Sin datos.");
+                    JOptionPane.showMessageDialog(this, "No hay datos para exportar.");
+                    return;
+                }
+
+                java.time.format.DateTimeFormatter dtfFile = java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy");
+                String fechaFile = inicio.format(dtfFile);
+                String bocaSuffix = (bocaStr != null && !bocaStr.equals("[TODAS]")) ? bocaStr : "TODAS";
+
+                String rutaXls = "Edisys_" + fechaFile + "_" + bocaSuffix + ".xls";
+                
+                py.com.concepto.model.entity.Filial filial = dbService.getFilialData();
+                String usuario = txtUser.getText();
+
+                reportService.generarEdisysXls(datos, rutaXls, "GUARANI", filial.getDescricao(), usuario);
+                
+                log("--- Exportación Exitosa ---");
+                log("Archivo: " + rutaXls);
+                setLoading(false, "Status: XLS Generado.");
+                JOptionPane.showMessageDialog(this, "Reporte Edisys generado con éxito:\n" + rutaXls);
+            } catch (Exception ex) {
+                log("ERROR al exportar Edisys: " + ex.getMessage());
+                setLoading(false, "Error en Exportación.");
+                JOptionPane.showMessageDialog(this, "Error al exportar: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }).start();
     }
 
     public static void main(String[] args) {

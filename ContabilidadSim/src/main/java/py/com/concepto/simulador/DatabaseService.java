@@ -13,6 +13,7 @@ import java.util.List;
 import py.com.concepto.model.entity.Filial;
 import py.com.concepto.model.entity.Moeda;
 import py.com.concepto.model.entity.ParametrizacaoEdisys;
+import py.com.concepto.simulador.model.IntegracaoVendaEdisysDto;
 import py.com.concepto.simulador.model.IntegracaoVendaHechaukaDto;
 import py.com.concepto.simulador.model.ItemVenda;
 import py.com.concepto.simulador.model.LivroVendaDto;
@@ -240,6 +241,159 @@ public class DatabaseService {
             }
         }
         return dtoList;
+    }
+
+    public List<IntegracaoVendaEdisysDto> relatorioEdisys(String fechaInicio, String fechaFin, String bocaFiltro) throws SQLException {
+        List<IntegracaoVendaEdisysDto> dtoList = new ArrayList<>();
+        
+        // 1. Obtener parámetros de Edisys
+        ParametrizacaoEdisys parametros = new ParametrizacaoEdisys();
+        String sqlParam = "SELECT * FROM CON_PARAMETRIZACAO_EDISYS LIMIT 1";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sqlParam)) {
+            if (rs.next()) {
+                parametros.setCodigoEmpresa(rs.getLong("CD_EMPRESA"));
+                parametros.setCodigoContaContavelIva0(rs.getString("CD_CONTA_CONTAVEL_IVA_0"));
+                parametros.setCodigoContaContavelIva5(rs.getString("CD_CONTA_CONTAVEL_IVA_5"));
+                parametros.setCodigoContaContavelIva10(rs.getString("CD_CONTA_CONTAVEL_IVA_10"));
+                parametros.setNroComprovanteContado(rs.getLong("NRO_COMPROVANTE_CONTADO"));
+                parametros.setNroComprovanteCredito(rs.getLong("NRO_COMPROVANTE_CREDITO"));
+            }
+        }
+
+        // 2. Consulta de facturas
+        StringBuilder sql = new StringBuilder("SELECT " +
+                     "NF.ID_NOTA_FATURADA, NF.DT_FATURA, NF.NR_FATURA, NF.NR_BOCA, NF.NR_FILIAL, NF.BO_CANCELADO, NF.BO_CONTADO, " +
+                     "NF.PRODUTOS_IVA_DEZ, NF.PRODUTOS_IVA_CINCO, NF.PRODUTOS_IVA_ZERO, " +
+                     "NF.IVA_DEZ, NF.IVA_CINCO, NF.VL_FATURA, " +
+                     "T.TIMBRADO, " +
+                     "P.NOME, P.RUC, " +
+                     "V.CD_VENDA, V.ID_CONTA_RECEBER " +
+                     "FROM CON_NOTA_FATURADA NF " +
+                     "INNER JOIN CON_TIMBRADO T ON T.ID_TIMBRADO = NF.ID_TIMBRADO " +
+                     "INNER JOIN BS_PESSOA P ON P.ID_PESSOA = NF.ID_PESSOA " +
+                     "LEFT JOIN ven_venda V ON V.ID_VENDA = NF.ID_VENDA " +
+                     "WHERE DATE(NF.DT_FATURA) BETWEEN ? AND ? ");
+
+        boolean hasBoca = bocaFiltro != null && !bocaFiltro.trim().isEmpty() && !bocaFiltro.equals("[TODAS]");
+        if (hasBoca) {
+            sql.append(" AND NF.NR_BOCA = ? ");
+        }
+        sql.append(" ORDER BY NF.NR_FATURA ASC");
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql.toString())) {
+            pstmt.setString(1, fechaInicio);
+            pstmt.setString(2, fechaFin);
+            if (hasBoca) pstmt.setString(3, bocaFiltro);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    long idNota = rs.getLong("ID_NOTA_FATURADA");
+                    long cdVenda = rs.getLong("CD_VENDA");
+                    if (rs.wasNull()) cdVenda = idNota;
+
+                    String nroFaturaStr = String.format("%03d-%03d-%07d", 
+                        rs.getInt("NR_FILIAL"), rs.getInt("NR_BOCA"), rs.getInt("NR_FATURA"));
+                    
+                    boolean cancelado = rs.getBoolean("BO_CANCELADO");
+                    boolean contado = rs.getBoolean("BO_CONTADO");
+                    String condicaoStr = contado ? "Contado " : "Credito ";
+                    Long nroComp = contado ? parametros.getNroComprovanteContado() : parametros.getNroComprovanteCredito();
+                    
+                    // Lógica de parcelas (simplificada para simulador)
+                    long cuotas = contado ? 1L : 1L; 
+                    if (!contado && rs.getLong("ID_CONTA_RECEBER") > 0) {
+                        // Podríamos consultar la cantidad de parcelas real aquí si fuera necesario
+                    }
+
+                    BigDecimal p0 = rs.getBigDecimal("PRODUTOS_IVA_ZERO");
+                    BigDecimal p5 = rs.getBigDecimal("PRODUTOS_IVA_CINCO");
+                    BigDecimal p10 = rs.getBigDecimal("PRODUTOS_IVA_DEZ");
+                    BigDecimal iva5 = rs.getBigDecimal("IVA_CINCO");
+                    BigDecimal iva10 = rs.getBigDecimal("IVA_DEZ");
+                    BigDecimal totalNF = rs.getBigDecimal("VL_FATURA");
+
+                    int secuencia = 1;
+
+                    // IVA 0
+                    if (p0.compareTo(BigDecimal.ZERO) > 0) {
+                        IntegracaoVendaEdisysDto d = createEdisysDto(rs, cdVenda, nroFaturaStr, parametros, 0, cancelado);
+                        d.setTipoComprovante(nroComp);
+                        d.setCantidadCuota(cuotas);
+                        d.setDetalle(condicaoStr + nroFaturaStr + " " + rs.getString("NOME"));
+                        d.setNrItemDetalle((long)secuencia++);
+                        dtoList.add(d);
+                    }
+                    // IVA 5
+                    if (p5.compareTo(BigDecimal.ZERO) > 0) {
+                        IntegracaoVendaEdisysDto d = createEdisysDto(rs, cdVenda, nroFaturaStr, parametros, 5, cancelado);
+                        d.setTipoComprovante(nroComp);
+                        d.setCantidadCuota(cuotas);
+                        d.setDetalle(condicaoStr + nroFaturaStr + " " + rs.getString("NOME"));
+                        d.setNrItemDetalle((long)secuencia++);
+                        dtoList.add(d);
+                    }
+                    // IVA 10
+                    if (p10.compareTo(BigDecimal.ZERO) > 0) {
+                        IntegracaoVendaEdisysDto d = createEdisysDto(rs, cdVenda, nroFaturaStr, parametros, 10, cancelado);
+                        d.setTipoComprovante(nroComp);
+                        d.setCantidadCuota(cuotas);
+                        d.setDetalle(condicaoStr + nroFaturaStr + " " + rs.getString("NOME"));
+                        d.setNrItemDetalle((long)secuencia++);
+                        dtoList.add(d);
+                    }
+                }
+            }
+        }
+        return dtoList;
+    }
+
+    private IntegracaoVendaEdisysDto createEdisysDto(ResultSet rs, long cdVenda, String nroFatura, ParametrizacaoEdisys p, int tasaIva, boolean cancelado) throws SQLException {
+        IntegracaoVendaEdisysDto d = new IntegracaoVendaEdisysDto();
+        d.setCodigoEmpresa(p.getCodigoEmpresa());
+        d.setCodigoVenta(cdVenda);
+        d.setFecha(rs.getDate("DT_FATURA"));
+        d.setRuc(rs.getString("RUC"));
+        d.setNroFactura(nroFatura);
+        d.setCodigoMoneda(1L);
+        d.setCotizacion(0L);
+        d.setNombreCliente(rs.getString("NOME"));
+        d.setNrTimbrado(rs.getString("TIMBRADO"));
+        d.setEstado(cancelado ? "Anulado" : "Activo");
+        d.setTipoOperacion(5L);
+        d.setTotalGeneral(rs.getBigDecimal("VL_FATURA"));
+        d.setPorcentajeIva((long)tasaIva);
+
+        if (cancelado) {
+            return d; // Valores en cero por defecto del constructor
+        }
+
+        BigDecimal p0 = rs.getBigDecimal("PRODUTOS_IVA_ZERO");
+        BigDecimal p5 = rs.getBigDecimal("PRODUTOS_IVA_CINCO");
+        BigDecimal p10 = rs.getBigDecimal("PRODUTOS_IVA_DEZ");
+        BigDecimal i5 = rs.getBigDecimal("IVA_CINCO");
+        BigDecimal i10 = rs.getBigDecimal("IVA_DEZ");
+
+        d.setTotalIva(i5.add(i10));
+
+        if (tasaIva == 0) {
+            d.setCuentaContable(p.getCodigoContaContavelIva0());
+            d.setIvaIncluido("N");
+            d.setMontoExenta(p0);
+            d.setImporteExcenta(p0);
+        } else if (tasaIva == 5) {
+            d.setCuentaContable(p.getCodigoContaContavelIva5());
+            d.setIvaIncluido("I");
+            d.setMontoSinIva(p5.subtract(i5));
+            d.setMontoIva5(i5);
+            d.setImporteGrabada5(p5);
+        } else if (tasaIva == 10) {
+            d.setCuentaContable(p.getCodigoContaContavelIva10());
+            d.setIvaIncluido("I");
+            d.setMontoSinIva(p10.subtract(i10));
+            d.setMontoIva10(i10);
+            d.setImporteGrabada10(p10);
+        }
+        return d;
     }
 
     public void connect(String host, String user, String password, String database) throws SQLException {

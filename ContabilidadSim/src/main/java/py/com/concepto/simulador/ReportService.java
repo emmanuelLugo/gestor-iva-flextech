@@ -16,6 +16,8 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporterParameter;
+import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.engine.export.JRXlsExporterParameter;
 import py.com.concepto.model.entity.Filial;
 import py.com.concepto.simulador.model.IntegracaoVendaHechaukaDto;
 import py.com.concepto.simulador.model.LivroVendaDto;
@@ -92,5 +94,35 @@ public class ReportService {
 
         // Llenar el reporte
         return JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+    }
+
+    public void generarEdisysXls(List<?> datos, String rutaDestino, String moneda, String filialNombre, String usuario) throws JRException {
+        // Cargar el diseño .jrxml desde el classpath (recursos)
+        InputStream jrxmlStream = getClass().getResourceAsStream("/reports/ExportacaoVendasEdisys.jrxml");
+        if (jrxmlStream == null) {
+            throw new JRException("No se pudo encontrar el archivo de reporte /reports/ExportacaoVendasEdisys.jrxml en los recursos.");
+        }
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(jrxmlStream);
+        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(datos);
+
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("P_RESUMIDO", false);
+        parameters.put("P_MOEDA_FATURAMENTO", moneda);
+        parameters.put("P_FILIAL", filialNombre);
+        parameters.put("P_USUARIO", usuario);
+        parameters.put(JRParameter.REPORT_LOCALE, new java.util.Locale("es", "PY"));
+
+        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
+
+        JRXlsExporter exporter = new JRXlsExporter();
+        exporter.setParameter(JRXlsExporterParameter.JASPER_PRINT, jasperPrint);
+        exporter.setParameter(JRXlsExporterParameter.OUTPUT_FILE_NAME, rutaDestino);
+        exporter.setParameter(JRXlsExporterParameter.IS_ONE_PAGE_PER_SHEET, Boolean.FALSE);
+        exporter.setParameter(JRXlsExporterParameter.IS_DETECT_CELL_TYPE, Boolean.TRUE);
+        exporter.setParameter(JRXlsExporterParameter.IS_WHITE_PAGE_BACKGROUND, Boolean.FALSE);
+        exporter.setParameter(JRXlsExporterParameter.IS_REMOVE_EMPTY_SPACE_BETWEEN_ROWS, Boolean.TRUE);
+
+        exporter.exportReport();
     }
 }

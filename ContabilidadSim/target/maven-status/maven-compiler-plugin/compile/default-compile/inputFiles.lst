@@ -1,10 +1,13 @@
-D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\ItemVenda.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\model\entity\ParametrizacaoEdisys.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\Venda.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\ReportService.java
-D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\model\entity\Filial.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\LivroVendaDto.java
-D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\model\entity\Moeda.java
-D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\SimulationResult.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\IntegracaoVendaHechaukaDto.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\App.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\ItemVenda.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\model\entity\Filial.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\model\entity\Moeda.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\IntegracaoVendaEdisysDto.java
+D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\model\SimulationResult.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\SimulationService.java
 D:\FlutterProyectos\Contabilidad\ContabilidadSim\src\main\java\py\com\concepto\simulador\DatabaseService.java

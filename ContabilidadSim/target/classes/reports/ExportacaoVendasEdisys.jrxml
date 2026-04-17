@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ExportacaoVendasEdisys" pageWidth="1700" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="1700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7ed2dada-c4bb-45c9-96fc-1c0d6e74f8a8">
+	<property name="ireport.zoom" value="1.0263162364614133"/>
+	<property name="ireport.x" value="543"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Zebrado">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($V{COLUMN_COUNT}.intValue() % 2) == 0)]]></conditionExpression>
+			<style mode="Opaque" forecolor="#000000" backcolor="#EEE9E9"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="P_RESUMIDO" class="java.lang.Boolean"/>
+	<parameter name="P_MOEDA_FATURAMENTO" class="java.lang.String"/>
+	<parameter name="P_FILIAL" class="java.lang.String"/>
+	<parameter name="P_USUARIO" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="cantidadCuota" class="java.lang.Long">
+		<fieldDescription><![CDATA[cantidadCuota]]></fieldDescription>
+	</field>
+	<field name="codigoCentroCosto" class="java.lang.String">
+		<fieldDescription><![CDATA[codigoCentroCosto]]></fieldDescription>
+	</field>
+	<field name="codigoEmpresa" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoEmpresa]]></fieldDescription>
+	</field>
+	<field name="codigoMoneda" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoMoneda]]></fieldDescription>
+	</field>
+	<field name="codigoVenta" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoVenta]]></fieldDescription>
+	</field>
+	<field name="cotizacion" class="java.lang.Long">
+		<fieldDescription><![CDATA[cotizacion]]></fieldDescription>
+	</field>
+	<field name="cuentaContable" class="java.lang.String">
+		<fieldDescription><![CDATA[cuentaContable]]></fieldDescription>
+	</field>
+	<field name="detalle" class="java.lang.String">
+		<fieldDescription><![CDATA[detalle]]></fieldDescription>
+	</field>
+	<field name="estado" class="java.lang.String">
+		<fieldDescription><![CDATA[estado]]></fieldDescription>
+	</field>
+	<field name="fecha" class="java.util.Date">
+		<fieldDescription><![CDATA[fecha]]></fieldDescription>
+	</field>
+	<field name="importeExcenta" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[importeExcenta]]></fieldDescription>
+	</field>
+	<field name="importeGrabada10" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[importeGrabada10]]></fieldDescription>
+	</field>
+	<field name="importeGrabada5" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[importeGrabada5]]></fieldDescription>
+	</field>
+	<field name="ivaIncluido" class="java.lang.String">
+		<fieldDescription><![CDATA[ivaIncluido]]></fieldDescription>
+	</field>
+	<field name="montoExenta" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoExenta]]></fieldDescription>
+	</field>
+	<field name="montoIva10" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoIva10]]></fieldDescription>
+	</field>
+	<field name="montoIva5" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoIva5]]></fieldDescription>
+	</field>
+	<field name="montoSinIva" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoSinIva]]></fieldDescription>
+	</field>
+	<field name="nombreCliente" class="java.lang.String">
+		<fieldDescription><![CDATA[nombreCliente]]></fieldDescription>
+	</field>
+	<field name="nota" class="java.lang.String">
+		<fieldDescription><![CDATA[nota]]></fieldDescription>
+	</field>
+	<field name="nrItemDetalle" class="java.lang.Long">
+		<fieldDescription><![CDATA[nrItemDetalle]]></fieldDescription>
+	</field>
+	<field name="nrTimbrado" class="java.lang.String">
+		<fieldDescription><![CDATA[nrTimbrado]]></fieldDescription>
+	</field>
+	<field name="nroFactura" class="java.lang.String">
+		<fieldDescription><![CDATA[nroFactura]]></fieldDescription>
+	</field>
+	<field name="porcentajeIva" class="java.lang.Long">
+		<fieldDescription><![CDATA[porcentajeIva]]></fieldDescription>
+	</field>
+	<field name="ruc" class="java.lang.String">
+		<fieldDescription><![CDATA[ruc]]></fieldDescription>
+	</field>
+	<field name="tipoComprovante" class="java.lang.Long">
+		<fieldDescription><![CDATA[tipoComprovante]]></fieldDescription>
+	</field>
+	<field name="tipoOperacion" class="java.lang.Long">
+		<fieldDescription><![CDATA[tipoOperacion]]></fieldDescription>
+	</field>
+	<field name="totalGeneral" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[totalGeneral]]></fieldDescription>
+	</field>
+	<field name="totalIva" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[totalIva]]></fieldDescription>
+	</field>
+	<variable name="V_CODIGO" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[new java.lang.Integer (1)]]></variableExpression>
+		<initialValueExpression><![CDATA[new java.lang.Integer (0)]]></initialValueExpression>
+	</variable>
+	<group name="DATE_GROUP">
+		<groupExpression><![CDATA[]]></groupExpression>
+	</group>
+	<detail>
+		<band height="12">
+			<printWhenExpression><![CDATA[$P{P_RESUMIDO} == false]]></printWhenExpression>
+			<textField>
+				<reportElement uuid="81f837d4-74b3-4cbd-8a51-deed385a9e5b" x="0" y="0" width="45" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoVenta}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="4676307e-124a-4e14-be93-772219a418a9" x="45" y="0" width="15" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoEmpresa}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="d30f3547-2d99-4070-98a0-53af6308a900" x="60" y="0" width="48" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="08db0d0d-e859-44e5-b0dc-92b086386ce7" x="108" y="0" width="15" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tipoComprovante}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="2f2671ec-60a2-4eb4-9bcd-758216588b1a" x="123" y="0" width="55" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ruc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b136f640-feea-461c-9352-5180d549ca11" x="178" y="0" width="15" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tipoOperacion}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="2d5da2f5-13b7-44cf-a2b3-a1a0328a4d59" x="193" y="0" width="117" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nroFactura}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="69980ba5-e703-4eb3-a770-af9cdc74cad1" x="310" y="0" width="15" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoMoneda}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="c9a96f80-240f-47fc-99b8-2e4982ef92d7" x="325" y="0" width="15" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cotizacion}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="de4de54f-73ec-4cfa-bec3-1a0245fb7de4" x="340" y="0" width="55" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{importeExcenta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="8f82b935-74b4-4b95-9b2e-bebfd6c5f630" x="395" y="0" width="55" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{importeGrabada5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="4eb5b583-79ae-46dc-a229-ea9c71a6151b" x="450" y="0" width="55" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{importeGrabada10}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="eefd9d25-a3c1-4f01-9654-c32a40002d43" x="505" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalGeneral}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1394b7ea-98dc-45bf-88e2-9033f2d613af" x="565" y="0" width="63" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cuentaContable}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="778705fc-2936-4077-ba40-11eb33502332" x="628" y="0" width="254" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{detalle}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="74e0f59e-7b7e-445f-8697-e86c440ec6f5" x="882" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoExenta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="97920652-18a0-4ba4-b923-e57a98715633" x="942" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoSinIva}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="dd990c3b-183b-4fa7-a14d-426c807f18a3" x="1002" y="0" width="22" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ivaIncluido}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="bb7d3a30-5a9c-4dce-8d42-bbe35ad0a9ef" x="1024" y="0" width="22" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nrItemDetalle}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="31c5b1a0-a8f1-4efd-b0e5-bdd06dcd94f1" x="1046" y="0" width="22" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{porcentajeIva}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="3240a5d1-b08b-489c-81fb-a875c5631c47" x="1068" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoIva5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="f3c8734f-7c86-406b-a991-b3c986d7d82c" x="1128" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoIva10}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="f3311850-b3cb-4cf9-ac11-4bd07c167c3f" x="1188" y="0" width="60" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalIva}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="98af3a93-506d-489b-9fe5-ab071227fbaa" x="1248" y="0" width="156" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nombreCliente}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="43b90618-2ac8-4950-9ea1-b3a025f57a29" x="1404" y="0" width="79" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nrTimbrado}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="3d7de202-6852-400f-a3ac-5f393b9adc82" x="1483" y="0" width="30" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new BigDecimal(0)]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="87436550-7a5d-4d0f-88a5-465408bb81fa" x="1513" y="0" width="22" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cantidadCuota}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="e9398cae-d05e-4902-8d05-2c3209fb8c06" x="1535" y="0" width="27" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoCentroCosto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="45d3a537-2f6f-4062-bcc1-12ba9e892b52" x="1562" y="0" width="37" height="12"/>
+				<textElement textAlignment="Center" markup="none">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{estado}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<noData>
+		<band height="39">
+			<staticText>
+				<reportElement uuid="219058b9-ba0f-40c1-b7c2-2ccc511110c1" x="0" y="0" width="1698" height="37"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<text><![CDATA[La Consulta realizada no retornó registros]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>
