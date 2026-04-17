@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="ExportacaoVendasEdisys" pageWidth="1700" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="1700" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="7ed2dada-c4bb-45c9-96fc-1c0d6e74f8a8">
+	<property name="ireport.zoom" value="2.0000000000000036"/>
+	<property name="ireport.x" value="2192"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Zebrado">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($V{COLUMN_COUNT}.intValue() % 2) == 0)]]></conditionExpression>
+			<style mode="Opaque" forecolor="#000000" backcolor="#EEE9E9"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="P_RESUMIDO" class="java.lang.Boolean"/>
+	<parameter name="P_MOEDA_FATURAMENTO" class="java.lang.String"/>
+	<parameter name="P_FILIAL" class="java.lang.String"/>
+	<parameter name="P_USUARIO" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="class" class="java.lang.Class">
+		<fieldDescription><![CDATA[class]]></fieldDescription>
+	</field>
+	<field name="codigoComprobante" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoComprobante]]></fieldDescription>
+	</field>
+	<field name="codigoCondicionVenta" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoCondicionVenta]]></fieldDescription>
+	</field>
+	<field name="codigoIdentificacion" class="java.lang.Long">
+		<fieldDescription><![CDATA[codigoIdentificacion]]></fieldDescription>
+	</field>
+	<field name="fecha" class="java.util.Date">
+		<fieldDescription><![CDATA[fecha]]></fieldDescription>
+	</field>
+	<field name="imputaIre" class="java.lang.String">
+		<fieldDescription><![CDATA[imputaIre]]></fieldDescription>
+	</field>
+	<field name="imputaIrpRsp" class="java.lang.String">
+		<fieldDescription><![CDATA[imputaIrpRsp]]></fieldDescription>
+	</field>
+	<field name="imputaIva" class="java.lang.String">
+		<fieldDescription><![CDATA[imputaIva]]></fieldDescription>
+	</field>
+	<field name="monedaExtranjera" class="java.lang.String">
+		<fieldDescription><![CDATA[monedaExtranjera]]></fieldDescription>
+	</field>
+	<field name="montoExenta" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoExenta]]></fieldDescription>
+	</field>
+	<field name="montoIva10" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoIva10]]></fieldDescription>
+	</field>
+	<field name="montoIva5" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[montoIva5]]></fieldDescription>
+	</field>
+	<field name="nombreCliente" class="java.lang.String">
+		<fieldDescription><![CDATA[nombreCliente]]></fieldDescription>
+	</field>
+	<field name="nrComprobanteVenta" class="java.lang.String">
+		<fieldDescription><![CDATA[nrComprobanteVenta]]></fieldDescription>
+	</field>
+	<field name="nrTimbrado" class="java.lang.String">
+		<fieldDescription><![CDATA[nrTimbrado]]></fieldDescription>
+	</field>
+	<field name="nroFactura" class="java.lang.String">
+		<fieldDescription><![CDATA[nroFactura]]></fieldDescription>
+	</field>
+	<field name="ruc" class="java.lang.String">
+		<fieldDescription><![CDATA[ruc]]></fieldDescription>
+	</field>
+	<field name="timbradoComprobanteVenta" class="java.lang.String">
+		<fieldDescription><![CDATA[timbradoComprobanteVenta]]></fieldDescription>
+	</field>
+	<field name="tipoRegistro" class="java.lang.Long">
+		<fieldDescription><![CDATA[tipoRegistro]]></fieldDescription>
+	</field>
+	<field name="totalGeneral" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[totalGeneral]]></fieldDescription>
+	</field>
+	<variable name="V_CODIGO" class="java.lang.Integer" calculation="Count">
+		<variableExpression><![CDATA[new java.lang.Integer (1)]]></variableExpression>
+		<initialValueExpression><![CDATA[new java.lang.Integer (0)]]></initialValueExpression>
+	</variable>
+	<group name="DATE_GROUP">
+		<groupExpression><![CDATA[]]></groupExpression>
+	</group>
+	<detail>
+		<band height="12">
+			<printWhenExpression><![CDATA[$P{P_RESUMIDO} == false]]></printWhenExpression>
+			<textField>
+				<reportElement uuid="b4ad6c68-f151-4ee2-913d-516977337caa" x="0" y="0" width="72" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tipoRegistro}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="053466ff-5925-4752-94a1-bb2fa602b09f" x="72" y="0" width="61" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoIdentificacion}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="a2aa7355-cbd7-4379-bcf6-1fe80eb8f9f1" x="133" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ruc}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="98ee1dea-8bd8-4766-9748-aa3f2eba196e" x="233" y="0" width="167" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nombreCliente}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="48d3a688-b114-47fa-a35e-9b8c727f0489" x="400" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoComprobante}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="22af53e3-5a50-41a0-96c3-a796e7af15e3" x="500" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{fecha}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b4efd452-d1a2-494e-b8d3-81ad0b51e5fa" x="600" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nrTimbrado}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="47d69b9b-75ef-411a-86e2-3e16c139d41c" x="700" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nroFactura}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="de5d8a26-27a5-4dc9-8124-298e2803bef1" x="800" y="0" width="100" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoIva10}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="bc7d338b-7a46-4109-8a29-9202bcc6a3ae" x="900" y="0" width="103" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoIva5}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="33822296-58d9-4189-96d7-db087be3a946" x="1003" y="0" width="103" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{montoExenta}]]></textFieldExpression>
+			</textField>
+			<textField pattern="###0">
+				<reportElement uuid="42013887-39ef-43ba-9359-b53ca53cc1cf" x="1106" y="0" width="116" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{totalGeneral}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1677e1f2-27c2-45b4-842a-7b53a3af7b81" x="1362" y="0" width="70" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imputaIva}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="96b18412-7781-46d5-918c-9012ea4c9176" x="1432" y="0" width="70" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imputaIre}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="b0e143fe-ff24-44fe-800c-4a7efa3f03e8" x="1502" y="0" width="70" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{imputaIrpRsp}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="1ded84d2-609a-42ac-8738-150dc0850d55" x="1292" y="0" width="70" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{monedaExtranjera}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="87fc7bd9-f4a3-4798-b7e4-c713277ff591" x="1222" y="0" width="70" height="12"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{codigoCondicionVenta}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<noData>
+		<band height="39">
+			<staticText>
+				<reportElement uuid="219058b9-ba0f-40c1-b7c2-2ccc511110c1" x="0" y="0" width="1698" height="37"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<text><![CDATA[La Consulta realizada no retornó registros]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>

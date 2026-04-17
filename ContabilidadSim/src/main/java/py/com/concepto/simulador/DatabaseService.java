@@ -1,14 +1,22 @@
 package py.com.concepto.simulador;
 
-import java.sql.*;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import py.com.concepto.simulador.model.*;
-import java.math.BigDecimal;
-
-import py.com.concepto.model.entity.Moeda;
 
 import py.com.concepto.model.entity.Filial;
+import py.com.concepto.model.entity.Moeda;
+import py.com.concepto.model.entity.ParametrizacaoEdisys;
+import py.com.concepto.simulador.model.IntegracaoVendaHechaukaDto;
+import py.com.concepto.simulador.model.ItemVenda;
+import py.com.concepto.simulador.model.LivroVendaDto;
+import py.com.concepto.simulador.model.Venda;
 
 public class DatabaseService {
     private Connection connection;
@@ -114,6 +122,119 @@ public class DatabaseService {
                         dto.setVlIva5(iva5);
                         dto.setVlTotalExcento(prodIva0);
                     }
+                    dtoList.add(dto);
+                }
+            }
+        }
+        return dtoList;
+    }
+
+    public ParametrizacaoEdisys getParametrizacaoEdisys() throws SQLException {
+        ParametrizacaoEdisys p = new ParametrizacaoEdisys();
+        String sql = "SELECT * FROM CON_PARAMETRIZACAO_EDISYS LIMIT 1";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                p.setId(rs.getLong("ID_PARAMETRIZACAO"));
+                p.setImpuneIva(rs.getString("IMPUNE_IVA"));
+                p.setImpuneIre(rs.getString("IMPUNE_IRE"));
+                p.setImpuneIrpRps(rs.getString("IMPUNE_IRP_RSP"));
+                // Add more fields if needed, but these are the ones used in RG90
+            }
+        }
+        return p;
+    }
+
+    public List<IntegracaoVendaHechaukaDto> relatorioRG90(String fechaInicio, String fechaFin, String bocaFiltro) throws SQLException {
+        List<IntegracaoVendaHechaukaDto> dtoList = new ArrayList<>();
+        ParametrizacaoEdisys parametrosEdisys = getParametrizacaoEdisys();
+        Long idConsumidorFinal = getClientePadrao();
+
+        StringBuilder sql = new StringBuilder("SELECT " +
+                     "NF.ID_NOTA_FATURADA, NF.DT_FATURA, NF.NR_FATURA, NF.NR_BOCA, NF.NR_FILIAL, NF.BO_CANCELADO, NF.BO_CONTADO, " +
+                     "NF.PRODUTOS_IVA_DEZ, NF.PRODUTOS_IVA_CINCO, NF.PRODUTOS_IVA_ZERO, " +
+                     "NF.IVA_DEZ, NF.IVA_CINCO, NF.VL_FATURA, " +
+                     "T.TIMBRADO, " +
+                     "P.ID_PESSOA, P.NOME, P.RUC, " +
+                     "V.ID_CONTA_RECEBER " +
+                     "FROM CON_NOTA_FATURADA NF " +
+                     "INNER JOIN CON_TIMBRADO T ON T.ID_TIMBRADO = NF.ID_TIMBRADO " +
+                     "INNER JOIN BS_PESSOA P ON P.ID_PESSOA = NF.ID_PESSOA " +
+                     "LEFT JOIN ven_venda V ON V.ID_VENDA = NF.ID_VENDA " +
+                     "WHERE DATE(NF.DT_FATURA) BETWEEN ? AND ? ");
+
+        boolean hasBoca = bocaFiltro != null && !bocaFiltro.trim().isEmpty() && !bocaFiltro.equals("[TODAS]");
+        if (hasBoca) {
+            sql.append(" AND NF.NR_BOCA = ? ");
+        }
+        
+        sql.append(" ORDER BY NF.NR_FATURA ASC");
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql.toString())) {
+            pstmt.setString(1, fechaInicio);
+            pstmt.setString(2, fechaFin);
+            if (hasBoca) {
+                pstmt.setString(3, bocaFiltro);
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    boolean cancelado = rs.getBoolean("BO_CANCELADO");
+                    if (cancelado) continue; // RG90 code usually skips canceled or handles them specifically
+
+                    IntegracaoVendaHechaukaDto dto = new IntegracaoVendaHechaukaDto();
+                    dto.setTipoRegistro(1L);
+
+                    Long idPessoa = rs.getLong("ID_PESSOA");
+                    String ruc = rs.getString("RUC");
+                    
+                    if (idPessoa.equals(idConsumidorFinal)) {
+                        dto.setCodigoIdentificacion(15L);
+                        dto.setRuc("X");
+                        dto.setNombreCliente("SIN NOMBRE");
+                    } else {
+                        if (ruc == null) ruc = "";
+                        if (ruc.indexOf("-") <= 0) {
+                            dto.setCodigoIdentificacion(12L);
+                        } else {
+                            dto.setCodigoIdentificacion(11L);
+                        }
+                        String[] array = ruc.split("-");
+                        dto.setRuc(array[0]);
+                        dto.setNombreCliente(rs.getString("NOME"));
+                    }
+
+                    dto.setCodigoComprobante(109L); // Factura
+                    dto.setFecha(rs.getDate("DT_FATURA"));
+                    dto.setNrTimbrado(rs.getString("TIMBRADO"));
+                    
+                    String nrFaturaStr = String.format("%03d-%03d-%07d", 
+                        rs.getInt("NR_FILIAL"), rs.getInt("NR_BOCA"), rs.getInt("NR_FATURA"));
+                    dto.setNroFactura(nrFaturaStr);
+
+                    dto.setMontoIva10(rs.getBigDecimal("PRODUTOS_IVA_DEZ"));
+                    dto.setMontoIva5(rs.getBigDecimal("PRODUTOS_IVA_CINCO"));
+                    dto.setMontoExenta(rs.getBigDecimal("PRODUTOS_IVA_ZERO"));
+                    dto.setTotalGeneral(rs.getBigDecimal("VL_FATURA"));
+
+                    // Condicion Venta
+                    Long idContaReceber = rs.getLong("ID_CONTA_RECEBER");
+                    if (rs.wasNull()) {
+                        // If no venda, use BO_CONTADO from NF
+                        dto.setCodigoCondicionVenta(rs.getBoolean("BO_CONTADO") ? 1L : 2L);
+                    } else {
+                        dto.setCodigoCondicionVenta(2L); // Credito
+                    }
+                    // Re-check logic if it was actually Contado but has Venda
+                    if (idContaReceber == 0) {
+                         dto.setCodigoCondicionVenta(rs.getBoolean("BO_CONTADO") ? 1L : 2L);
+                    }
+
+                    dto.setMonedaExtranjera("N");
+                    dto.setImputaIva(parametrosEdisys.getImpuneIva());
+                    dto.setImputaIre(parametrosEdisys.getImpuneIre());
+                    dto.setImputaIrpRsp(parametrosEdisys.getImpuneIrpRps());
+                    dto.setNrComprobanteVenta(" ");
+                    dto.setTimbradoComprobanteVenta(" ");
+
                     dtoList.add(dto);
                 }
             }

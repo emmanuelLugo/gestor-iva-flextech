@@ -65,6 +65,8 @@ public class App extends JFrame {
     private JButton btnConnect = new JButton("Conectar y Listar BD");
     private JButton btnExport = new JButton("Exportar CSV");
     private JButton btnReportePdf = new JButton("Generar LIBRO VENTA (PDF)");
+    private JButton btnRG90 = new JButton("Generar RG90 (PDF)");
+    private JButton btnRG90Csv = new JButton("Generar RG90 (CSV)");
     private JButton btnCancelar = new JButton("DETENER PROCESO");
 
     private ReportService reportService = new ReportService();
@@ -112,6 +114,11 @@ public class App extends JFrame {
         pnlFiltros.add(btnSimular);
         pnlFiltros.add(btnExport);
         pnlFiltros.add(new JLabel("Reporte Legal:")); pnlFiltros.add(btnReportePdf);
+        pnlFiltros.add(new JLabel("Reporte RG90:")); 
+        JPanel pnlRG90Buttons = new JPanel(new GridLayout(1, 2, 5, 5));
+        pnlRG90Buttons.add(btnRG90);
+        pnlRG90Buttons.add(btnRG90Csv);
+        pnlFiltros.add(pnlRG90Buttons);
 
         btnFacturar.setBackground(new Color(255, 100, 100));
         btnFacturar.setForeground(Color.WHITE);
@@ -149,6 +156,8 @@ public class App extends JFrame {
         btnSimular.addActionListener(e -> runSimulation(false, null));
         btnExport.addActionListener(e -> exportCsv());
         btnReportePdf.addActionListener(e -> generarReportePdf());
+        btnRG90.addActionListener(e -> generarReporteRG90(false));
+        btnRG90Csv.addActionListener(e -> generarReporteRG90(true));
         btnFacturar.addActionListener(e -> runRealExecution());
         btnCancelar.addActionListener(e -> {
             cancelled = true;
@@ -212,6 +221,65 @@ public class App extends JFrame {
                 log("ERROR al generar reporte: " + ex.getMessage());
                 setLoading(false, "Error en Reporte.");
                 JOptionPane.showMessageDialog(this, "Error al generar reporte: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void generarReporteRG90(boolean isCsv) {
+        LocalDate inicio = datePickerInicio.getDate();
+        LocalDate fin = datePickerFin.getDate();
+        if (inicio == null || fin == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione fechas válidas");
+            return;
+        }
+
+        setLoading(true, "Status: Generando Reporte RG90 (" + (isCsv ? "CSV" : "PDF") + ")...");
+        new Thread(() -> {
+            try {
+                log("--- Generando Reporte RG90 " + (isCsv ? "CSV" : "PDF") + " ---");
+                log("Periodo: " + inicio + " al " + fin);
+                
+                String bocaStr = (String) cbBoca.getSelectedItem();
+                List<py.com.concepto.simulador.model.IntegracaoVendaHechaukaDto> datos = dbService.relatorioRG90(inicio.toString(), fin.toString(), bocaStr);
+                
+                if (datos.isEmpty()) {
+                    log("!!! No se encontraron datos para el periodo seleccionado.");
+                    setLoading(false, "Status: Sin datos.");
+                    JOptionPane.showMessageDialog(this, "No hay datos para reportar en esas fechas.");
+                    return;
+                }
+
+                // Formatear fechas para el nombre del archivo (DDMMYYYY)
+                java.time.format.DateTimeFormatter dtfFile = java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy");
+                String fechaFile = inicio.format(dtfFile);
+                
+                String bocaSuffix = "TODAS";
+                if (bocaStr != null && !bocaStr.equals("[TODAS]")) {
+                    bocaSuffix = bocaStr;
+                }
+
+                String ext = isCsv ? ".csv" : ".pdf";
+                String rutaDestino = "RG90_" + fechaFile + "_" + bocaSuffix + ext;
+                
+                py.com.concepto.model.entity.Filial filial = dbService.getFilialData();
+                String moneda = "GUARANI";
+                String usuario = txtUser.getText();
+
+                if (isCsv) {
+                    reportService.generarRG90Csv(datos, rutaDestino, moneda, filial.getDescricao(), usuario);
+                } else {
+                    reportService.generarRG90Pdf(datos, rutaDestino, moneda, filial.getDescricao(), usuario);
+                }
+                
+                log("--- Reporte RG90 Generado Exitosamente ---");
+                log("Archivo: " + rutaDestino);
+                setLoading(false, "Status: Reporte Generado.");
+                JOptionPane.showMessageDialog(this, "Reporte generado con éxito:\n" + rutaDestino);
+            } catch (Exception ex) {
+                log("ERROR al generar reporte RG90: " + ex.getMessage());
+                setLoading(false, "Error en Reporte RG90.");
+                JOptionPane.showMessageDialog(this, "Error al generar reporte RG90: " + ex.getMessage());
                 ex.printStackTrace();
             }
         }).start();
