@@ -64,14 +64,16 @@ public class App extends JFrame {
     private JButton btnFacturar = new JButton("PROCESAR Y FACTURAR (REAL)");
     private JButton btnConnect = new JButton("Conectar y Listar BD");
     private JButton btnExport = new JButton("Exportar CSV");
+    private JButton btnReportePdf = new JButton("Generar LIBRO VENTA (PDF)");
     private JButton btnCancelar = new JButton("DETENER PROCESO");
 
+    private ReportService reportService = new ReportService();
     private volatile boolean cancelled = false;
 
     public App() {
         setTitle("Flextech - Simulador Auto Impressor");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 900);
+        setSize(700, 950);
         setLayout(new BorderLayout());
 
         btnCancelar.setBackground(Color.DARK_GRAY);
@@ -102,13 +104,14 @@ public class App extends JFrame {
         pnlConn.add(cbDatabase);
 
         JPanel pnlFiltros = new JPanel(new GridLayout(0, 2, 5, 5));
-        pnlFiltros.setBorder(BorderFactory.createTitledBorder("Filtros Simulación"));
+        pnlFiltros.setBorder(BorderFactory.createTitledBorder("Filtros y Reportes"));
         pnlFiltros.add(new JLabel("Boca:")); pnlFiltros.add(cbBoca);
         pnlFiltros.add(new JLabel("Fecha Inicio (DD/MM/AAAA):")); pnlFiltros.add(datePickerInicio);
         pnlFiltros.add(new JLabel("Fecha Fin (DD/MM/AAAA):")); pnlFiltros.add(datePickerFin);
         pnlFiltros.add(new JLabel("Monto Máx Item:")); pnlFiltros.add(txtMontoMax);
         pnlFiltros.add(btnSimular);
         pnlFiltros.add(btnExport);
+        pnlFiltros.add(new JLabel("Reporte Legal:")); pnlFiltros.add(btnReportePdf);
 
         btnFacturar.setBackground(new Color(255, 100, 100));
         btnFacturar.setForeground(Color.WHITE);
@@ -116,7 +119,7 @@ public class App extends JFrame {
         pnlFiltros.add(btnCancelar);
 
         JPanel pnlResult = new JPanel(new GridLayout(0, 1, 5, 5));
-        pnlResult.setBorder(BorderFactory.createTitledBorder("Resultados"));
+        pnlResult.setBorder(BorderFactory.createTitledBorder("Resultados Simulación"));
         pnlResult.add(lblResVentas);
         pnlResult.add(lblResOriginal);
         pnlResult.add(lblResSimulado);
@@ -145,12 +148,73 @@ public class App extends JFrame {
         cbDatabase.addActionListener(e -> initDatabase());
         btnSimular.addActionListener(e -> runSimulation(false, null));
         btnExport.addActionListener(e -> exportCsv());
+        btnReportePdf.addActionListener(e -> generarReportePdf());
         btnFacturar.addActionListener(e -> runRealExecution());
         btnCancelar.addActionListener(e -> {
             cancelled = true;
             btnCancelar.setEnabled(false);
             log("!!! Solicitando detención del proceso...");
         });
+    }
+
+    private void generarReportePdf() {
+        LocalDate inicio = datePickerInicio.getDate();
+        LocalDate fin = datePickerFin.getDate();
+        if (inicio == null || fin == null) {
+            JOptionPane.showMessageDialog(this, "Seleccione fechas válidas");
+            return;
+        }
+
+        setLoading(true, "Status: Generando Reporte PDF...");
+        new Thread(() -> {
+            try {
+                log("--- Generando Reporte Libro Venta PDF ---");
+                log("Periodo: " + inicio + " al " + fin);
+                
+                String bocaStr = (String) cbBoca.getSelectedItem();
+                List<py.com.concepto.simulador.model.LivroVendaDto> datos = dbService.relatorioLivroVenda(inicio.toString(), fin.toString(), bocaStr);
+                
+                if (datos.isEmpty()) {
+                    log("!!! No se encontraron datos para el periodo seleccionado.");
+                    setLoading(false, "Status: Sin datos.");
+                    JOptionPane.showMessageDialog(this, "No hay datos para reportar en esas fechas.");
+                    return;
+                }
+
+                // Formatear fechas a DD-MM-YYYY para el filtro
+                java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy");
+                String filtros = inicio.format(dtf) + " al " + fin.format(dtf);
+                
+                // Formatear fecha para el nombre del archivo (DDMMYYYY)
+                java.time.format.DateTimeFormatter dtfFile = java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy");
+                String fechaFile = inicio.format(dtfFile);
+                
+                String bocaSuffix = "TODAS";
+                if (bocaStr != null && !bocaStr.equals("[TODAS]")) {
+                    filtros += " - Boca: " + bocaStr;
+                    bocaSuffix = bocaStr;
+                }
+
+                String rutaPdf = "LibroVenta_" + fechaFile + "_" + bocaSuffix + ".pdf";
+                
+                String moneda = datos.get(0).getMoeda().getNome();
+                
+                // Obtener datos reales de la Filial/Empresa
+                py.com.concepto.model.entity.Filial filial = dbService.getFilialData();
+                
+                reportService.generarLibroVentaPdf(datos, rutaPdf, filtros, moneda, filial);
+                
+                log("--- Reporte Generado Exitosamente ---");
+                log("Archivo: " + rutaPdf);
+                setLoading(false, "Status: PDF Generado.");
+                JOptionPane.showMessageDialog(this, "Reporte generado con éxito:\n" + rutaPdf);
+            } catch (Exception ex) {
+                log("ERROR al generar reporte: " + ex.getMessage());
+                setLoading(false, "Error en Reporte.");
+                JOptionPane.showMessageDialog(this, "Error al generar reporte: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        }).start();
     }
 
     private void log(String message) {
@@ -358,6 +422,7 @@ public class App extends JFrame {
     }
 
     public static void main(String[] args) {
+        Locale.setDefault(new Locale("es", "PY"));
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {

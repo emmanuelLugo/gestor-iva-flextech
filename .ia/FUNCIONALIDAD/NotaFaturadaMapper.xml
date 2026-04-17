@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="py.com.concepto.model.entity.NotaFaturadaMapper">
+	<resultMap id="resultId" type="NotaFaturada">
+		<id property="id" column="ID_NOTA_FATURADA" />
+	</resultMap>
+
+	<resultMap id="resultSimples" type="NotaFaturada" extends="resultId">
+		<result property="dtFatura" column="DT_FATURA" />
+		<result property="dtVenda" column="DT_VENDA" />
+		<result property="dtEmissao" column="DT_EMISSAO" />
+		<result property="vlFatura" column="VL_FATURA" />
+		<result property="produtosIvaDez" column="PRODUTOS_IVA_DEZ" />
+		<result property="produtosIvaCinco" column="PRODUTOS_IVA_CINCO" />
+		<result property="produtosIvaZero" column="PRODUTOS_IVA_ZERO" />
+		<result property="ivaDez" column="IVA_DEZ" />
+		<result property="ivaCinco" column="IVA_CINCO" />
+		<result property="totalIva" column="TOTAL_IVA" />
+		<result property="timbrado" column="TIMBRADO" />
+		<result property="nrFilial" column="NR_FILIAL" />
+		<result property="nrBoca" column="NR_BOCA" />
+		<result property="nrFatura" column="NR_FATURA" />
+		<result property="nrFatura" column="NR_FATURA" />
+		<result property="cancelado" column="BO_CANCELADO" />
+		<result property="processado" column="BO_PROCESSADO" />
+		<result property="observacao" column="OBSERVACAO" />
+		<result property="contado" column="BO_CONTADO" />
+
+		<association property="pessoa" column="ID_PESSOA"
+			javaType="Pessoa" jdbcType="VARCHAR">
+			<id property="id" column="ID_PESSOA" />
+			<result property="nome" column="NOME" />
+			<result property="ruc" column="RUC" />
+			<result property="extrangeiro" column="BO_EXTRANGEIRO" />
+		</association>
+		
+		<association property="cotacao" column="ID_COTACAO"
+			javaType="Cotacao" jdbcType="VARCHAR">
+			<id property="id" column="ID_COTACAO" />
+		</association>
+
+
+		<association property="timbrado" column="ID_TIMBRADO"
+			javaType="Timbrado">
+			<id property="id" column="ID_TIMBRADO" />
+			<result property="timbrado" column="TIMBRADO" />
+		</association>
+
+		<association property="venda" column="ID_VENDA" javaType="Venda">
+			<id property="id" column="ID_VENDA" javaType="Long" jdbcType="VARCHAR" />
+			<result property="codigo" column="CD_VENDA" />
+		</association>
+
+	</resultMap>
+
+	<resultMap id="result" type="NotaFaturada" extends="resultSimples">
+			<collection property="itens" ofType="ItemNotaFaturada"
+			jdbcType="VARCHAR" javaType="ArrayList"
+			select="py.com.concepto.model.entity.ItemNotaFaturadaMapper.findItensByNotaFaturada"
+			column="{idNotaFaturada=ID_NOTA_FATURADA}" />
+	</resultMap>
+
+	<select id="defaultNotaFaturadaId" resultMap="resultId">
+		${clause}
+	</select>
+
+	<sql id="sqlDefault">
+		SELECT
+		CON_NOTA_FATURADA.*,
+		T.*,
+		P.NOME,
+		P.RUC,
+		P.BO_EXTRANGEIRO,
+		v.ID_VENDA,
+		v.CD_VENDA
+		FROM
+		CON_NOTA_FATURADA
+		INNER JOIN CON_TIMBRADO T
+		ON T.ID_TIMBRADO = CON_NOTA_FATURADA.ID_TIMBRADO
+		LEFT JOIN ven_venda v ON v.ID_VENDA = CON_NOTA_FATURADA.ID_VENDA 
+		INNER JOIN BS_PESSOA P ON P.ID_PESSOA = CON_NOTA_FATURADA.ID_PESSOA
+	</sql>
+
+
+	<select id="findNotaFaturada" resultMap="result">
+		<include refid="sqlDefault" />
+		WHERE ${condition} AND CON_NOTA_FATURADA.ID_FILIAL =
+		#{@sessionHandler.ID_FILIAL} order by CON_NOTA_FATURADA.NR_FATURA ASC
+	</select>
+
+	<select id="defaultNotaFaturada" resultMap="result">
+		<include refid="sqlDefault" />
+		WHERE ${condition} AND CON_NOTA_FATURADA.ID_FILIAL =
+		#{@sessionHandler.ID_FILIAL} 
+	</select>
+
+
+	<select id="telaPesquisaNotasFaturadas" resultMap="resultSimples">
+		SELECT
+		CON_NOTA_FATURADA.*,
+		T.*,
+		P.*
+		FROM
+		CON_NOTA_FATURADA CON_NOTA_FATURADA
+		INNER JOIN CON_TIMBRADO T
+		ON T.ID_TIMBRADO = CON_NOTA_FATURADA.ID_TIMBRADO
+		INNER JOIN BS_PESSOA P ON P.ID_PESSOA = CON_NOTA_FATURADA.ID_PESSOA
+		WHERE
+		${condition} AND CON_NOTA_FATURADA.ID_FILIAL =
+		#{@sessionHandler.ID_FILIAL}
+		ORDER BY CON_NOTA_FATURADA.NR_FATURA DESC LIMIT 50
+	</select>
+
+	<select id="findUltimaNotaValida" statementType="CALLABLE"
+		resultType="Long">
+		SELECT FIND_NUMERO_FATURA_LEGAL(#{idTimbrado},
+		#{@sessionHandler.ID_FILIAL}) FROM DUAL
+	</select>
+
+	<select id="findNotasByVenda" resultMap="result">
+		<include refid="sqlDefault" />
+		  WHERE CON_NOTA_FATURADA.ID_VENDA = #{idVenda}
+	</select>
+
+	<select id="findNotasByVendaNrNota" resultMap="result">
+		SELECT * FROM
+		CON_NOTA_FATURADA NF WHERE ID_VENDA = #{idVenda} AND NR_ORDEM_NOTA =
+		#{nrNota}
+	</select>
+
+	<select id="findNotasSemVenda" resultMap="result">
+		SELECT * FROM
+		CON_NOTA_FATURADA NF WHERE NF.ID_TIMBRADO = #{idTimbrado} AND
+		NF.NR_FATURA = ${nrFatura}
+	</select>
+
+	<select id="findNumeroFaturaLegalAutoImpressor" statementType="CALLABLE"
+		resultType="long">
+		SELECT CON_GERA_NUMERO_FATURA_AUTO_IMPRESSOR(
+		#{@sessionHandler.ID_FILIAL, mode=IN, jdbcType=INTEGER}, 
+		#{idTimbrado, mode=IN, jdbcType=INTEGER}, 
+		#{bocaFaturacao, mode=IN, jdbcType=VARCHAR}, 
+		#{tipoDocumento, mode=IN, jdbcType=VARCHAR}
+		) from dual;
+	</select>
+
+	<select id="findNumeroFaturaLegalAutoImpressorNoCache" statementType="CALLABLE"
+		resultType="long" useCache="false" flushCache="true">
+		SELECT CON_GERA_NUMERO_FATURA_AUTO_IMPRESSOR(
+		#{@sessionHandler.ID_FILIAL, mode=IN, jdbcType=INTEGER}, 
+		#{idTimbrado, mode=IN, jdbcType=INTEGER}, 
+		#{bocaFaturacao, mode=IN, jdbcType=VARCHAR}, 
+		#{tipoDocumento, mode=IN, jdbcType=VARCHAR}
+		) from dual
+		<if test="dummy != null">
+			WHERE #{dummy} = #{dummy}
+		</if>
+	</select>
+
+	<select id="relatorioAuditoriaFaturasLegaisAutoImpressor"
+		resultType="py.com.concepto.model.entity.dto.RelatorioAditoriaFaturaLegalDto">
+		SELECT
+		v.cd_venda AS codigo,
+		p.NOME AS cliente,
+		p.RUC AS ruc,
+		v.VL_TOTAL AS total,
+		v.DT_VENDA AS fecha,
+		t.TIMBRADO AS timbrado,
+		v.FILIAL AS filial,
+		v.BOCA AS boca,
+		v.NR_FATURA AS nrFatura,
+		v.USUARIO AS usuario,
+		IF (v.id_conta_receber IS NULL, 'CONTADO','CREDITO')
+		contadoCredito,
+		v.BO_CANCELADO AS cancelado,
+		v.USUARIO_CANCELAMENTO AS usuarioCancelamento
+		FROM
+		ven_venda v
+		INNER JOIN bs_pessoa p
+		ON p.ID_PESSOA = v.ID_PESSOA
+		INNER JOIN con_timbrado t
+		ON t.ID_TIMBRADO = v.ID_TIMBRADO
+		WHERE ${condition} AND v.ID_FILIAL = #{@sessionHandler.ID_FILIAL}
+	</select>
+
+
+<!-- 	MODULO AUTO IMPRESSOR -->
+
+	<select id="findNotaByVenda" resultMap="result">
+		SELECT nf.* FROM CON_NOTA_FATURADA nf WHERE nf.ID_VENDA = #{idVenda} LIMIT 1
+	</select>
+	
+	<select id="findNotaSimplesByVenda" resultMap="resultSimples">
+		SELECT nf.* FROM CON_NOTA_FATURADA nf WHERE nf.ID_VENDA = #{idVenda} AND NF.NR_FATURA = #{nrFatura}
+	</select>
+	
+	<select id="findVendaByNrFatura" resultMap="resultSimples">
+		SELECT 
+			  * 
+			FROM
+			  ven_venda v 
+			  INNER JOIN con_nota_faturada nf 
+			    ON v.ID_VENDA = nf.ID_VENDA 
+			WHERE nf.NR_FATURA = #{nrFatura} AND nf.ID_TIMBRADO = #{idTimbrado}
+	</select>
+	
+	<update id="actualizaNrFatura">
+		UPDATE CON_ITEM_TIMBRADO SET NR_FATURA =
+		#{nrFatura} WHERE ID_TIMBRADO = #{id}
+	</update>
+	
+	<select id="relatorioGastoIntegracaoVendaContabilidadePreImpresso" resultMap="resultSimples">
+		<include refid="sqlDefault"/>
+		where ${condition} AND CON_NOTA_FATURADA.ID_FILIAL = #{@sessionHandler.ID_FILIAL} ORDER BY CON_NOTA_FATURADA.NR_FATURA , P.NOME
+	</select>
+	
+	
+</mapper>

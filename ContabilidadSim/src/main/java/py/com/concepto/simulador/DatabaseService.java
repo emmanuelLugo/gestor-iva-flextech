@@ -6,8 +6,120 @@ import java.util.List;
 import py.com.concepto.simulador.model.*;
 import java.math.BigDecimal;
 
+import py.com.concepto.model.entity.Moeda;
+
+import py.com.concepto.model.entity.Filial;
+
 public class DatabaseService {
     private Connection connection;
+
+    public Filial getFilialData() throws SQLException {
+        Filial f = new Filial();
+        String sql = "SELECT E.DS_EMPRESA, F.RUC, F.ENDERECO " +
+                     "FROM filial F " +
+                     "INNER JOIN empresa E ON E.ID_EMPRESA = F.ID_EMPRESA " +
+                     "LIMIT 1"; // Ajustar si hay múltiples filiales
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                f.setDescricao(rs.getString("DS_EMPRESA"));
+                f.setRuc(rs.getString("RUC"));
+                f.setEndereco(rs.getString("ENDERECO"));
+            }
+        }
+        return f;
+    }
+
+    public List<LivroVendaDto> relatorioLivroVenda(String fechaInicio, String fechaFin, String bocaFiltro) throws SQLException {
+        List<LivroVendaDto> dtoList = new ArrayList<>();
+        
+        // Obtener moneda base
+        Moeda monedaBase = new Moeda();
+        String sqlMoeda = "SELECT VALOR FROM sys_parametros WHERE PARAMETRO = 'MOEDA_BASE_VENDA'";
+        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sqlMoeda)) {
+            if (rs.next()) {
+                if ("GUARANI".equals(rs.getString(1))) {
+                    monedaBase.setId(1L);
+                    monedaBase.setNome("GUARANI");
+                } else {
+                    monedaBase.setId(2L);
+                    monedaBase.setNome("DOLAR");
+                }
+            }
+        }
+
+        StringBuilder sql = new StringBuilder("SELECT " +
+                     "NF.DT_FATURA, NF.NR_FATURA, NF.NR_BOCA, NF.NR_FILIAL, NF.BO_CANCELADO, NF.BO_CONTADO, " +
+                     "NF.PRODUTOS_IVA_DEZ, NF.PRODUTOS_IVA_CINCO, NF.PRODUTOS_IVA_ZERO, " +
+                     "NF.IVA_DEZ, NF.IVA_CINCO, NF.VL_FATURA, " +
+                     "T.TIMBRADO, " +
+                     "P.NOME, P.RUC " +
+                     "FROM CON_NOTA_FATURADA NF " +
+                     "INNER JOIN CON_TIMBRADO T ON T.ID_TIMBRADO = NF.ID_TIMBRADO " +
+                     "INNER JOIN BS_PESSOA P ON P.ID_PESSOA = NF.ID_PESSOA " +
+                     "WHERE DATE(NF.DT_FATURA) BETWEEN ? AND ? ");
+
+        boolean hasBoca = bocaFiltro != null && !bocaFiltro.trim().isEmpty() && !bocaFiltro.equals("[TODAS]");
+        if (hasBoca) {
+            sql.append(" AND NF.NR_BOCA = ? ");
+        }
+        
+        sql.append(" ORDER BY NF.NR_FATURA ASC");
+
+        try (PreparedStatement pstmt = connection.prepareStatement(sql.toString())) {
+            pstmt.setString(1, fechaInicio);
+            pstmt.setString(2, fechaFin);
+            if (hasBoca) {
+                pstmt.setString(3, bocaFiltro);
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    LivroVendaDto dto = new LivroVendaDto();
+                    dto.setMoeda(monedaBase);
+                    dto.setCliente(rs.getString("NOME"));
+                    dto.setRuc(rs.getString("RUC"));
+                    dto.setDtVenda(rs.getDate("DT_FATURA"));
+                    dto.setDtInicial(rs.getDate("DT_FATURA"));
+                    
+                    String timbrado = rs.getString("TIMBRADO");
+                    int filial = rs.getInt("NR_FILIAL");
+                    int boca = rs.getInt("NR_BOCA");
+                    int facturaNum = rs.getInt("NR_FATURA");
+                    
+                    String nrFaturaStr = String.format("%03d-%03d-%07d", filial, boca, facturaNum);
+                    dto.setNrFatura(nrFaturaStr);
+                    dto.setTimbrado(timbrado);
+                    dto.setNrDocumento(timbrado + " " + nrFaturaStr);
+
+                    boolean cancelado = rs.getBoolean("BO_CANCELADO");
+                    if (cancelado) {
+                        dto.setTipoDocumento("ANULADO");
+                        dto.setVlGravada10(BigDecimal.ZERO);
+                        dto.setVlGravada5(BigDecimal.ZERO);
+                        dto.setVlIva10(BigDecimal.ZERO);
+                        dto.setVlIva5(BigDecimal.ZERO);
+                        dto.setVlTotalExcento(BigDecimal.ZERO);
+                    } else {
+                        boolean contado = rs.getBoolean("BO_CONTADO");
+                        dto.setTipoDocumento(contado ? "CONTADO" : "CREDITO");
+                        
+                        BigDecimal prodIva10 = rs.getBigDecimal("PRODUTOS_IVA_DEZ");
+                        BigDecimal iva10 = rs.getBigDecimal("IVA_DEZ");
+                        BigDecimal prodIva5 = rs.getBigDecimal("PRODUTOS_IVA_CINCO");
+                        BigDecimal iva5 = rs.getBigDecimal("IVA_CINCO");
+                        BigDecimal prodIva0 = rs.getBigDecimal("PRODUTOS_IVA_ZERO");
+
+                        dto.setVlGravada10(prodIva10.subtract(iva10));
+                        dto.setVlGravada5(prodIva5.subtract(iva5));
+                        dto.setVlIva10(iva10);
+                        dto.setVlIva5(iva5);
+                        dto.setVlTotalExcento(prodIva0);
+                    }
+                    dtoList.add(dto);
+                }
+            }
+        }
+        return dtoList;
+    }
 
     public void connect(String host, String user, String password, String database) throws SQLException {
         String url = "jdbc:mysql://" + host + ":3306/" + (database != null ? database : "") + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";

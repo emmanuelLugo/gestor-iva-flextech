@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper
+	namespace="py.com.concepto.model.entity.ProcessamentoVendaAutoImpressorMapper">
+	<resultMap id="resultId" type="ProcessamentoVendaAutoImpressor">
+		<id property="id" column="ID_PROCESSAMENTO" />
+	</resultMap>
+
+	<resultMap id="resultSimples" type="ProcessamentoVendaAutoImpressor"
+		extends="resultId">
+		<result property="codigo" column="CD_VENDA" />
+		<result property="usuario" column="USUARIO" />
+		<result property="dtVenda" column="DT_VENDA" javaType="Date"
+			jdbcType="DATE" typeHandler="DateTypeHandler" />
+
+		<result property="cancelado" column="BO_CANCELADO" />
+		<result property="nrFatura" column="NR_FATURA" />
+		<result property="filial" column="FILIAL" />
+		<result property="boca" column="BOCA" />
+		
+		<result property="vlCotDolar" column="VL_COT_DOLAR" />
+		<result property="vlCotReal" column="VL_COT_REAL" />
+		<result property="vlCotGuarani" column="VL_COT_GUARANI" />
+		<result property="vlTotal" column="VL_TOTAL" />
+
+		<association property="venda" column="ID_VENDA" javaType="Venda">
+			<id property="id" column="ID_VENDA" javaType="Long" jdbcType="VARCHAR" />
+		</association>
+
+		<association property="pessoa" column="ID_PESSOA"
+			javaType="Pessoa" jdbcType="VARCHAR">
+			<id property="id" column="ID_PESSOA" />
+			<result property="nome" column="NOME" />
+			<result property="ruc" column="RUC" />
+			<result property="endereco" column="ENDERECO" />
+			<result property="telefone" column="TELEFONE" />
+		</association>
+
+		<association property="contaReceber" column="ID_CONTA_REBER"
+			javaType="ContaReceber" jdbcType="VARCHAR">
+			<id property="id" column="ID_CONTA_RECEBER" />
+		</association>
+
+		<association property="timbrado" column="ID_TIMBRADO"
+			javaType="Timbrado" jdbcType="VARCHAR">
+			<id property="id" column="ID_TIMBRADO" />
+			<result property="timbrado" column="TIMBRADO" />
+			<result property="dtFinal" column="DT_FINAL" />
+		</association>
+	</resultMap>
+
+
+	<resultMap id="result" type="ProcessamentoVendaAutoImpressor"
+		extends="resultSimples">
+		<collection property="itens" ofType="ItemProcessamentoVendaAutoImpressor"
+			jdbcType="VARCHAR" javaType="ArrayList"
+			select="py.com.concepto.model.entity.ItemProcessamentoVendaAutoImpressorMapper.findItensProcessamentoByProcessamento"
+			column="{id=ID_PROCESSAMENTO}" />
+
+
+	</resultMap>
+
+
+	<sql id="defaultSql">
+		SELECT
+		con_processamento_venda_auto_impressor.*,
+		p.*,
+		t.TIMBRADO,
+		t.DT_FINAL
+		FROM
+		con_processamento_venda_auto_impressor
+		INNER JOIN bs_pessoa p
+		ON p.ID_PESSOA = con_processamento_venda_auto_impressor.ID_PESSOA
+		INNER JOIN con_timbrado t
+		ON t.ID_TIMBRADO = con_processamento_venda_auto_impressor.ID_TIMBRADO
+	</sql>
+
+	<select id="defaultProcessamentoVendaAutoImpressorId" resultMap="resultId">
+		${clause}
+	</select>
+
+	<select id="findProcessamentoVendaAutoImpressor" resultMap="result">
+		<include refid="defaultSql"/>
+		WHERE
+		(${condition} )
+	</select>
+
+	<select id="findProcessamentoVendaAutoImpressorSimples"
+		resultMap="resultSimples">
+		<include refid="defaultSql"/>
+		WHERE
+		(${condition} )
+	</select>
+
+
+	<delete id="removeItensProcessamento">
+		DELETE FROM
+		con_item_processamento_venda_auto_impressor;
+	</delete>
+
+	<delete id="removeProcessamento">
+		DELETE FROM con_processamento_venda_auto_impressor;
+	</delete>
+
+
+	<select id="findParaReimpressao" resultMap="result">
+		<include refid="defaultSql"/>
+		 where con_processamento_venda_auto_impressor.BOCA = #{boca} ORDER BY con_processamento_venda_auto_impressor.BOCA, con_processamento_venda_auto_impressor.NR_FATURA
+	</select>
+
+</mapper>

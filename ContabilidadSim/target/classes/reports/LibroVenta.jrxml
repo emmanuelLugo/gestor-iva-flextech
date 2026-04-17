@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LibroVenta" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="NoDataSection" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="755530dd-dd96-4cef-951e-63a469106fbb">
+	<property name="ireport.zoom" value="2.6573415000000047"/>
+	<property name="ireport.x" value="677"/>
+	<property name="ireport.y" value="144"/>
+	<style name="Zebrado">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[new Boolean(($V{COLUMN_COUNT}.intValue() % 2) == 0)]]></conditionExpression>
+			<style mode="Opaque" forecolor="#000000" backcolor="#EEE9E9"/>
+		</conditionalStyle>
+	</style>
+	<parameter name="P_FILIAL" class="py.com.concepto.model.entity.Filial"/>
+	<parameter name="P_FILTROS" class="java.lang.String"/>
+	<parameter name="P_OBJECT_FILIAL" class="py.com.concepto.model.entity.Filial"/>
+	<parameter name="P_RESUMIDO" class="java.lang.Boolean">
+		<defaultValueExpression><![CDATA[false]]></defaultValueExpression>
+	</parameter>
+	<parameter name="P_REMOVE_CABECALHO" class="java.lang.Boolean"/>
+	<parameter name="P_MOEDA_FATURAMENTO" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="cliente" class="java.lang.String">
+		<fieldDescription><![CDATA[cliente]]></fieldDescription>
+	</field>
+	<field name="dtInicial" class="java.util.Date">
+		<fieldDescription><![CDATA[dtInicial]]></fieldDescription>
+	</field>
+	<field name="dtVenda" class="java.util.Date">
+		<fieldDescription><![CDATA[dtVenda]]></fieldDescription>
+	</field>
+	<field name="moeda" class="py.com.concepto.model.entity.Moeda">
+		<fieldDescription><![CDATA[moeda]]></fieldDescription>
+	</field>
+	<field name="nrDocumento" class="java.lang.String">
+		<fieldDescription><![CDATA[nrDocumento]]></fieldDescription>
+	</field>
+	<field name="nrFatura" class="java.lang.String">
+		<fieldDescription><![CDATA[nrFatura]]></fieldDescription>
+	</field>
+	<field name="ruc" class="java.lang.String">
+		<fieldDescription><![CDATA[ruc]]></fieldDescription>
+	</field>
+	<field name="timbrado" class="java.lang.String">
+		<fieldDescription><![CDATA[timbrado]]></fieldDescription>
+	</field>
+	<field name="tipoDocumento" class="java.lang.String">
+		<fieldDescription><![CDATA[tipoDocumento]]></fieldDescription>
+	</field>
+	<field name="vlGravada10" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[vlGravada10]]></fieldDescription>
+	</field>
+	<field name="vlGravada5" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[vlGravada5]]></fieldDescription>
+	</field>
+	<field name="vlIva10" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[vlIva10]]></fieldDescription>
+	</field>
+	<field name="vlIva5" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[vlIva5]]></fieldDescription>
+	</field>
+	<field name="vlTotalExcento" class="java.math.BigDecimal">
+		<fieldDescription><![CDATA[vlTotalExcento]]></fieldDescription>
+	</field>
+	<variable name="V_GRAVADAS_5" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[($F{vlGravada5} != null ?
+
+    $F{vlGravada5}
+    :
+    new BigDecimal(0)
+
+
+
+)]]></variableExpression>
+	</variable>
+	<variable name="V_GRAVADAS_10" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlGravada10}]]></variableExpression>
+	</variable>
+	<variable name="V_IMPOSTO_5" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlIva5}]]></variableExpression>
+	</variable>
+	<variable name="V_IMPOSTO_10" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlIva10}]]></variableExpression>
+	</variable>
+	<variable name="V_EXCENTAS" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlTotalExcento}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_GRAVADAS_5" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlGravada5}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_GRAVADAS_10" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlGravada10}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_IMPOSTO_5" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlIva5}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_IMPOSTO_10" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlIva10}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_EXCENTAS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{vlTotalExcento}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_IVA" class="java.math.BigDecimal">
+		<variableExpression><![CDATA[$F{vlGravada10}.add( $F{vlGravada5}).add($F{vlIva10}).add($F{vlIva5}).add($F{vlTotalExcento})]]></variableExpression>
+	</variable>
+	<variable name="V_IVAS" class="java.math.BigDecimal" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$V{V_TOTAL_IVA}]]></variableExpression>
+	</variable>
+	<variable name="V_TOTAL_IVAS" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$V{V_TOTAL_IVA}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{P_REMOVE_CABECALHO} == false]]></printWhenExpression>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="76" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{P_REMOVE_CABECALHO} == false]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="335d0dda-1b48-4f7c-aa42-57b908890320" x="0" y="0" width="801" height="21"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="14" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Libro Venta Ley 125/91]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="8ae7819e-6e23-4d22-92b0-0e7f3c41bdb4" x="0" y="34" width="584" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Empresa: " + $P{P_OBJECT_FILIAL}.getDescricao()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="f66c3b47-5ddd-442e-886a-9795f59e1ed9" x="0" y="22" width="802" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="db55617e-5a95-4e7d-bccd-1732d888b4ac" x="584" y="34" width="170" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["RUC: " + $P{P_OBJECT_FILIAL}.getRuc()]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="394ecef7-e50f-4b4e-aba8-70350822d5e1" x="0" y="54" width="584" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Dirección: " + $P{P_OBJECT_FILIAL}.getEndereco()]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="9e7c3866-b212-4666-9420-65ce83258ccc" x="0" y="74" width="802" height="1"/>
+			</line>
+			<textField>
+				<reportElement uuid="39c426a8-1a19-4fdf-8bab-1fe3a7e8d378" x="584" y="54" width="217" height="20"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA["Periodo: " + $P{P_FILTROS}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="31" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{P_REMOVE_CABECALHO} == false]]></printWhenExpression>
+			<staticText>
+				<reportElement uuid="9b6d59f1-35f5-4d98-9da0-a6e4802e0798" x="0" y="6" width="55" height="12"/>
+				<box topPadding="0" leftPadding="0" rightPadding="0">
+					<pen lineWidth="1.0"/>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="0.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Fecha]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a5e2dbdd-9dc4-4cb0-a0e5-544e2b46b5ff" x="55" y="6" width="70" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<leftPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[R.U.C o]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3e233d74-f485-4603-b34c-c7646b27cd44" x="0" y="18" width="55" height="12"/>
+				<box>
+					<leftPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[D/M/A]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="132c5bf8-2040-444a-87b0-326eee20fd3e" x="55" y="18" width="70" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Céd. de Cli.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="697a2ba2-0857-4261-8302-8be85eed7c90" x="125" y="6" width="172" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Nombre del]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b6181973-c125-4415-9011-c1d41fad2128" x="297" y="6" width="174" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Documento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="61c1541c-02b2-4b7d-9db0-4cc062cee687" x="297" y="18" width="42" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Tipo]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="b5ab4e40-7a22-4fe2-a0a4-f4a8a93c23ee" x="339" y="18" width="132" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Número]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c12fc4be-5c22-4418-b395-dd837392eab1" x="471" y="18" width="55" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[5%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e4df9cf0-897e-4aa3-84fb-b58823ee7cc9" x="526" y="18" width="55" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[10%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="e29350bc-3ff4-4d9b-a161-3fe8e0bbe7e2" x="636" y="18" width="55" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[10%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="0460cd7a-fe1a-4d15-895d-84ab3e98cab7" x="581" y="18" width="55" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[5%]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="53c10143-4808-49ab-8959-9ade26915921" x="691" y="18" width="55" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Exento]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c5a3b35a-822d-457d-a127-4384a02dc57a" x="471" y="6" width="110" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Gravadas]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="77de7c27-899c-4764-8158-d8844d5a7a10" x="581" y="6" width="110" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Impuestos]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="3681aef0-e1a8-4039-9c0a-bd688d9894b7" x="125" y="18" width="172" height="12"/>
+				<box>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Cliente]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9a1093eb-64f6-4b41-9dcf-049f27467fc4" x="746" y="18" width="55" height="12"/>
+				<box>
+					<topPen lineWidth="1.0"/>
+					<bottomPen lineWidth="1.0"/>
+					<rightPen lineWidth="1.0"/>
+				</box>
+				<textElement textAlignment="Center">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Total]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="bf0bf04a-815e-4b2c-85a8-6bdc5d37770a" style="Zebrado" x="0" y="0" width="55" height="13"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{dtInicial}]]></textFieldExpression>
+			</textField>
+			<textField pattern="" isBlankWhenNull="true">
+				<reportElement uuid="3a86ae7c-1c63-4945-a64f-0da6a0b741cb" style="Zebrado" x="55" y="0" width="70" height="13"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $F{ruc} == null ? "XXX " :  $F{ruc} + " " )]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="c67c174f-d701-47c6-91d7-393e9005431b" style="Zebrado" x="125" y="0" width="172" height="13"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{cliente}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="c509a33e-ff09-47f2-9054-6a3e07cfeff1" style="Zebrado" x="471" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($F{vlGravada5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($F{vlGravada5})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="f38f3299-1ced-4050-a542-be7e4d42c46f" style="Zebrado" x="526" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($F{vlGravada10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($F{vlGravada10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="e4165add-7601-433f-9cea-4d93d5624cab" style="Zebrado" x="581" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($F{vlIva5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($F{vlIva5})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="de8656b6-0bdc-435f-a799-be832a93ffdb" style="Zebrado" x="636" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($F{vlIva10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($F{vlIva10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="347ac55b-630b-444c-81da-59c84e802c04" style="Zebrado" x="691" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($F{vlTotalExcento})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($F{vlTotalExcento})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="3c34cac5-5f8d-42bc-bc97-6d01d0b7db84" style="Zebrado" x="297" y="0" width="42" height="13"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{tipoDocumento}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="38337f9d-f392-44d4-b6b6-6aa0ed6635d5" style="Zebrado" x="746" y="0" width="55" height="13"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_IVA})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_IVA})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="297324a1-fbd4-4b6e-b14c-94062a267d55" style="Zebrado" x="399" y="0" width="72" height="13"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{nrFatura}]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy">
+				<reportElement uuid="fcd0a63e-1238-4cf1-a405-4f8a23d95a0f" style="Zebrado" x="339" y="0" width="60" height="13"/>
+				<textElement textAlignment="Center">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{timbrado}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="15" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{P_RESUMIDO} == false]]></printWhenExpression>
+			<textField pattern="#,##0">
+				<reportElement uuid="8b88bd20-6336-40f2-ac41-416cbcbc6543" x="411" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_GRAVADAS_5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_GRAVADAS_5})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="6dcf42bd-07e7-4729-b053-a11dcfc77825" x="476" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_GRAVADAS_10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_GRAVADAS_10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="797042ed-9166-4b43-b538-6bed28e01536" x="541" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_IMPOSTO_5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_IMPOSTO_5})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="c8ecf38a-c67a-46bd-bf3a-688605a6720c" x="606" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_IMPOSTO_10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_IMPOSTO_10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="8e049029-c8a7-49c6-b674-b793475ff768" x="671" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_EXCENTAS})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_EXCENTAS})
+)]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="7c5ebc30-bbbe-4ef6-b78a-6872c1e03b95" x="275" y="2" width="136" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Total En Guaranies: "]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="5a67d9d4-3559-4bc2-9757-268e80890072" x="0" y="1" width="802" height="1"/>
+			</line>
+			<textField pattern="#,##0">
+				<reportElement uuid="3eed1196-67e5-4765-9f22-28d8d3bc9778" x="736" y="2" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_IVAS})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_IVAS})
+)]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="13" splitType="Stretch">
+			<printWhenExpression><![CDATA[$P{P_RESUMIDO} == false]]></printWhenExpression>
+		</band>
+	</pageFooter>
+	<lastPageFooter>
+		<band height="14">
+			<textField pattern="#,##0">
+				<reportElement uuid="ba2430fa-88af-4067-a020-16ea19b328a4" x="541" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_IMPOSTO_5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_IMPOSTO_5})
+)]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement uuid="5fc553fb-a83a-4685-a26f-decc2628a39f" x="274" y="0" width="136" height="13"/>
+				<textElement textAlignment="Right" verticalAlignment="Middle" markup="none">
+					<font size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Total General En Guaranies: "]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="ed3d46e6-fc8d-4785-803c-823bf3628311" x="411" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_GRAVADAS_5})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_GRAVADAS_5})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="4e8b4993-3ff2-47e9-8c9d-07cc6fc31ec7" x="606" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_IMPOSTO_10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_IMPOSTO_10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="6252042e-f5c4-4d80-b69b-41b294b25d91" x="476" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_GRAVADAS_10})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_GRAVADAS_10})
+)]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0">
+				<reportElement uuid="b983e5a0-b77f-4353-9d70-9e7fd2b31512" x="671" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_EXCENTAS})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_EXCENTAS})
+)]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="dddc0231-984b-47a0-ae4f-fff04b68cb4f" x="0" y="0" width="802" height="1"/>
+			</line>
+			<textField pattern="#,##0">
+				<reportElement uuid="c9f450a2-0bca-4821-8ed0-e5ed2a6703f5" x="736" y="0" width="65" height="12"/>
+				<textElement textAlignment="Right">
+					<font size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[( $P{P_MOEDA_FATURAMENTO}.compareTo( "GUARANI" ) == 0
+    ?
+    (new DecimalFormat("#,###,##0")).format($V{V_TOTAL_IVAS})
+    :
+    (new DecimalFormat("#,###,##0.00")).format($V{V_TOTAL_IVAS})
+)]]></textFieldExpression>
+			</textField>
+		</band>
+	</lastPageFooter>
+	<noData>
+		<band height="39">
+			<staticText>
+				<reportElement uuid="a2d44215-2fa4-4b3e-80a9-a94d5cf54b8c" x="0" y="0" width="801" height="37"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="18" isBold="true"/>
+				</textElement>
+				<text><![CDATA[La Consulta realizada no retornó registros]]></text>
+			</staticText>
+		</band>
+	</noData>
+</jasperReport>
