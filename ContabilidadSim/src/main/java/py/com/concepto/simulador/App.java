@@ -203,7 +203,8 @@ public class App extends JFrame {
                     bocaSuffix = bocaStr;
                 }
 
-                String rutaPdf = "LibroVenta_" + fechaFile + "_" + bocaSuffix + ".pdf";
+                String filename = "LibroVenta_" + fechaFile + "_" + bocaSuffix + ".pdf";
+                String rutaPdf = getOutputPath(filename);
                 
                 String moneda = datos.get(0).getMoeda().getNome();
                 
@@ -223,6 +224,32 @@ public class App extends JFrame {
                 ex.printStackTrace();
             }
         }).start();
+    }
+
+    private String getOutputPath(String filename) {
+        String dbName = (String) cbDatabase.getSelectedItem();
+        if (dbName == null || dbName.isEmpty()) {
+            return filename;
+        }
+
+        // Formatear nombre de base de datos (comercial_manuel -> Comercial Manuel)
+        StringBuilder formattedName = new StringBuilder();
+        String[] parts = dbName.split("_");
+        for (String part : parts) {
+            if (!part.isEmpty()) {
+                formattedName.append(Character.toUpperCase(part.charAt(0)))
+                             .append(part.substring(1).toLowerCase())
+                             .append(" ");
+            }
+        }
+        String folderName = formattedName.toString().trim();
+
+        java.io.File directory = new java.io.File(folderName);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
+        return folderName + java.io.File.separator + filename;
     }
 
     private void generarReporteRG90(boolean isCsv) {
@@ -259,7 +286,8 @@ public class App extends JFrame {
                 }
 
                 String ext = isCsv ? ".csv" : ".pdf";
-                String rutaDestino = "RG90_" + fechaFile + "_" + bocaSuffix + ext;
+                String filename = "RG90_" + fechaFile + "_" + bocaSuffix + ext;
+                String rutaDestino = getOutputPath(filename);
                 
                 py.com.concepto.model.entity.Filial filial = dbService.getFilialData();
                 String moneda = "GUARANI";
@@ -493,7 +521,8 @@ public class App extends JFrame {
                 String fechaFile = inicio.format(dtfFile);
                 String bocaSuffix = (bocaStr != null && !bocaStr.equals("[TODAS]")) ? bocaStr : "TODAS";
 
-                String rutaXls = "Edisys_" + fechaFile + "_" + bocaSuffix + ".xls";
+                String filename = "Edisys_" + fechaFile + "_" + bocaSuffix + ".xls";
+                String rutaXls = getOutputPath(filename);
                 
                 py.com.concepto.model.entity.Filial filial = dbService.getFilialData();
                 String usuario = txtUser.getText();
